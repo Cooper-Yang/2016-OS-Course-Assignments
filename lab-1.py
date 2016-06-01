@@ -33,6 +33,7 @@ Producer 2: (resume) 9 -> 10
 '''
 from threading import Thread
 from threading import Lock
+from time import sleep
 import Queue
 import random
 import sys
@@ -41,28 +42,32 @@ import sys
 #Queue object contain a semaphoe machinism itself
 SHARE_ZONE = Queue.Queue(10)
 READ_SIZE_LOCK = Lock()
-FULL_LOCK = Lock()
 MUTEX = Lock()
 DATA = 'whatever'
+RESULT = list()
 
 def producer(num=None):
 	'''
 	producer
 	'''
-	with READ_SIZE_LOCK:
-		temp = SHARE_ZONE.qsize()
-	SHARE_ZONE.put(DATA)
-	print	'producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp-1)
+	#with READ_SIZE_LOCK:
+	#	temp = SHARE_ZONE.qsize()
+	temp = SHARE_ZONE.qsize()
+	SHARE_ZONE.put(DATA, block=True)
+	with MUTEX:
+		RESULT.append('producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp+1) + '\n')
 	return
 
 def consumer(num=None):
 	'''
 	consumer
 	'''
-	with READ_SIZE_LOCK:
-		temp = SHARE_ZONE.qsize()
-	SHARE_ZONE.get(DATA)
-	print 'consumer ' + str(num) + ': ' + str(SHARE_ZONE) + ' -> ' + str(temp)
+	#with READ_SIZE_LOCK:
+	#	temp = SHARE_ZONE.qsize()
+	SHARE_ZONE.get(block=True)
+	temp = SHARE_ZONE.qsize()
+	with MUTEX:
+		RESULT.append('consumer ' + str(num) + ': ' + str(temp+1) + ' -> ' + str(temp) + '\n')
 	return
 
 def main_func(input_argv=None):
@@ -85,14 +90,19 @@ def main_func(input_argv=None):
 		roll = random.randint(0, 1)
 		if (roll == 0 and consumer_count > 0) or (roll == 1 and producer_count <= 0 and consumer_count > 0):
 			consumer_count -= 1
-			tmp_thread = Thread(target=consumer, args=(consumer_count))
+			tmp_thread = Thread(target=consumer, args=(consumer_count, ))
+			tmp_thread.daemon = True
 			tmp_thread.start()
 			remaining -= 1
 		elif (roll == 1 and producer_count > 0) or (roll == 0 and consumer_count <= 0 and producer_count > 0):
 			producer_count -= 1
-			tmp_thread = Thread(target=producer, args=(producer_count))
+			tmp_thread = Thread(target=producer, args=(producer_count, ))
+			tmp_thread.daemon = True
 			tmp_thread.start()
 			remaining -= 1
+	sleep(1)
+	for lines in RESULT:
+		print lines
 	print 'completed !'
 	return
 
