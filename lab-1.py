@@ -33,7 +33,6 @@ Producer 2: (resume) 9 -> 10
 '''
 from threading import Thread
 from threading import Lock
-from time import sleep
 import Queue
 import random
 import sys
@@ -41,7 +40,6 @@ import sys
 #init
 #Queue object contain a semaphoe machinism itself
 SHARE_ZONE = Queue.Queue(10)
-READ_SIZE_LOCK = Lock()
 MUTEX = Lock()
 DATA = 'whatever'
 RESULT = list()
@@ -66,6 +64,7 @@ def consumer(num=None):
 	#	temp = SHARE_ZONE.qsize()
 	SHARE_ZONE.get(block=True)
 	temp = SHARE_ZONE.qsize()
+	SHARE_ZONE.task_done()
 	with MUTEX:
 		RESULT.append('consumer ' + str(num) + ': ' + str(temp+1) + ' -> ' + str(temp) + '\n')
 	return
@@ -100,7 +99,7 @@ def main_func(input_argv=None):
 			tmp_thread.daemon = True
 			tmp_thread.start()
 			remaining -= 1
-	sleep(1)
+	SHARE_ZONE.join()
 	for lines in RESULT:
 		print lines
 	print 'completed !'
