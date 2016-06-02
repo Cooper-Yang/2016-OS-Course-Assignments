@@ -33,14 +33,20 @@ Producer 2: (resume) 9 -> 10
 '''
 from threading import Thread
 from threading import Lock
+from threading import Semaphore
+from time import sleep
 import Queue
 import random
 import sys
 
 #init
 #Queue object contain a semaphoe machinism itself
-SHARE_ZONE = Queue.Queue(10)
+LENGTH = 4
+SHARE_ZONE = Queue.Queue(LENGTH)
+FULL = Semaphore(LENGTH)
+EMPTY = Semaphore(0)
 MUTEX = Lock()
+STATUS = Lock()
 DATA = 'whatever'
 RESULT = list()
 
@@ -48,25 +54,38 @@ def producer(num=None):
 	'''
 	producer
 	'''
-	#with READ_SIZE_LOCK:
-	#	temp = SHARE_ZONE.qsize()
-	temp = SHARE_ZONE.qsize()
-	SHARE_ZONE.put(DATA, block=True)
+	with STATUS:
+		when_enter = SHARE_ZONE.qsize()
+		if when_enter == LENGTH:
+			RESULT.append('producer ' + str(num) + ': is waiting' + '\n')
+	FULL.acquire()
 	with MUTEX:
-		RESULT.append('producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp+1) + '\n')
+		temp = SHARE_ZONE.qsize()
+		SHARE_ZONE.put_nowait(DATA)
+		if when_enter == LENGTH:
+			RESULT.append('producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp+1) + ' resume' + '\n')
+		else:
+			RESULT.append('producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp+1) + '\n')
+	EMPTY.release()
 	return
 
 def consumer(num=None):
 	'''
 	consumer
 	'''
-	#with READ_SIZE_LOCK:
-	#	temp = SHARE_ZONE.qsize()
-	SHARE_ZONE.get(block=True)
-	temp = SHARE_ZONE.qsize()
-	SHARE_ZONE.task_done()
+	with STATUS:
+		when_enter = SHARE_ZONE.qsize()
+		if when_enter == 0:
+			RESULT.append('consumer ' + str(num) + ': is waiting' + '\n')
+	EMPTY.acquire()
 	with MUTEX:
-		RESULT.append('consumer ' + str(num) + ': ' + str(temp+1) + ' -> ' + str(temp) + '\n')
+		temp = SHARE_ZONE.qsize()
+		SHARE_ZONE.get_nowait()
+		if when_enter == 0:
+			RESULT.append('consumer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp-1) + ' resume' + '\n')
+		else:
+			RESULT.append('consumer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp-1) + '\n')
+	FULL.release()
 	return
 
 def main_func(input_argv=None):
@@ -99,7 +118,7 @@ def main_func(input_argv=None):
 			tmp_thread.daemon = True
 			tmp_thread.start()
 			remaining -= 1
-	SHARE_ZONE.join()
+	sleep(2)
 	for lines in RESULT:
 		print lines
 	print 'completed !'
