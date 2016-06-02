@@ -92,10 +92,13 @@ def main_func(input_argv=None):
 	'''
 	主函数
 	'''
-	if len(input_argv) < 2:
+	if len(input_argv) == 1:
 		task_count = 8
+	elif len(input_argv) == 2:
+		task_count = int(input_argv[1])
 	else:
 		task_count = int(input_argv[1])
+	outputfile = open('result.txt', 'w')
 
 	remaining = task_count + task_count
 	producer_count = task_count
@@ -121,6 +124,8 @@ def main_func(input_argv=None):
 	sleep(2)
 	for lines in RESULT:
 		print lines
+	if outputfile != None:
+		outputfile.writelines(RESULT)
 	print 'completed !'
 	return
 
