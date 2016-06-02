@@ -90,7 +90,7 @@ def consumer(num=None):
 
 def main_func(input_argv=None):
 	'''
-	主函数
+	主函数，生产者数量必须与消费者数量相同，否则会死锁
 	'''
 	if len(input_argv) == 1:
 		task_count = 8
