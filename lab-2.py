@@ -15,15 +15,13 @@
 from random import randint
 from copy import deepcopy
 
-TYPE_OF_RESOURCE = 8
+TYPE_OF_RESOURCE = 6
 MAX_RESOURCE = 400
 MIN_RESOURCE = 50
-NUM_OF_PROCESS = 20
+NUM_OF_PROCESS = 15
 
 MAX_P_VALUE = 20
 MIN_P_VALUE = 10
-
-PROCESS_LIST = list()
 
 class System(object):
 	'''
@@ -59,7 +57,7 @@ class Process(object):
 	'''
 	Process
 	'''
-	def __init__(self, type_num=None, min_value=None, max_value=None):
+	def __init__(self, type_num=None, min_value=None, max_value=None, avail_alloc=None):
 		'''
 		the input min_value and max_value should be a list
 		'''
@@ -78,7 +76,7 @@ class Process(object):
 		self.res = list()
 		self.name = str()
 		for i in range(0, type_num):
-			resource = ProcessAttr(min_value[i], max_value[i])
+			resource = ProcessAttr(min_value[i], max_value[i], avail_alloc[i])
 			self.res.append(resource)
 			resource = None
 		return
@@ -87,19 +85,22 @@ class ProcessAttr(object):
 	'''
 	Process Attribute
 	'''
-	def __init__(self, min_value=None, max_value=None):
+	def __init__(self, min_value=None, max_value=None, avail_alloc=None):
 		self.max = int()
 		self.allocation = int()
 		self.need = int()
-		self.generate(min_value, max_value)
-	def generate(self, min_value=None, max_value=None):
+		self.generate(min_value, max_value, avail_alloc)
+	def generate(self, min_value=None, max_value=None, avail_alloc=None):
 		'''
 		using module random to generate the process attribute
 		'''
 		if max_value != None and min_value != None:
+			# ajust here if dead lock happened too much
 			self.max = randint(min_value, max_value)
-			# ajust here to get a better look of resource allocation
-			self.allocation = randint(min_value, self.max)
+			if self.max < avail_alloc:
+				self.allocation = randint(min_value, self.max)
+			else:
+				self.allocation = randint(min_value, avail_alloc)
 			self.need = self.max - self.allocation
 		elif max_value is None and min_value is None:
 			self.max = randint(MIN_P_VALUE, MAX_P_VALUE)
@@ -115,6 +116,7 @@ def main_func():
 	#output_list = list()
 	output_line = list()
 	system_res = System()
+	process_list = list()
 	'''
 	add coustom system resource info here
 
@@ -126,14 +128,15 @@ def main_func():
 	for _ in range(0, TYPE_OF_RESOURCE):
 		min_list.append(0)
 	# init process in this system
+	max_list = list()
+	for j in range(0, TYPE_OF_RESOURCE):
+		max_list.append(randint(0, system_res.resource[j]))
 	for i in range(0, NUM_OF_PROCESS):
-		temp = Process(TYPE_OF_RESOURCE, min_list, randint(system_res.available, system_res.resource))
+		temp = Process(TYPE_OF_RESOURCE, min_list, max_list, system_res.available)
 		temp.name = 'Process' + str(i).rjust(3)
 		for j in range(0, TYPE_OF_RESOURCE):
 			system_res.available[j] = system_res.available[j] - temp.res[j].allocation
-			if system_res.available[j] < 0:
-				system_res.available[j] = 0
-		PROCESS_LIST.append(temp)
+		process_list.append(temp)
 		# output the init state of all process
 		max_attr = ' max -'
 		allocation_attr = ' allocation -'
@@ -144,22 +147,27 @@ def main_func():
 			need_attr = need_attr + str(temp.res[j].need).rjust(4)
 		line = temp.name + ':' + max_attr + allocation_attr + need_attr + '\n'
 		output_line.append(line)
+	# dead lock generator, will make dead lock more frequent
+	# for i in range(0, TYPE_OF_RESOURCE):
+	# 	minus = randint(0, system_res.available[j])
+	# 	system_res.available[j] = system_res.available[j] - minus
+	# 	system_res.resource[j] = system_res.resource[j] - minus
 	'''
 	add coustom process resource info here
 
-	PROCESS_LIST[0] = Process()
-	PROCESS_LIST[0].res[0].max = int()
-	PROCESS_LIST[0].res[0].allocation = int()
-	PROCESS_LIST[0].res[0].need = int()
-	PROCESS_LIST[0].res[1]
+	process_list[0] = Process()
+	process_list[0].res[0].max = int()
+	process_list[0].res[0].allocation = int()
+	process_list[0].res[0].need = int()
+	process_list[0].res[1]
 	...
-	PROCESS_LIST[0].res[n]
-	PROCESS_LIST[0].name = ''
-	PROCESS_LIST[1]
+	process_list[0].res[n]
+	process_list[0].name = ''
+	process_list[1]
 	...
-	PROCESS_LIST[n]
+	process_list[n]
 
-	for i in range(0, len(PROCESS_LIST)):
+	for i in range(0, len(process_list)):
 		max_attr = ' max -'
 		allocation_attr = ' allocation -'
 		need_attr = ' need -'
@@ -186,9 +194,9 @@ def main_func():
 	# banker's algorithm
 	count = NUM_OF_PROCESS
 	while count != 0:
-		# a list that log all process that a going to pop from the PROCESS_LIST at the end of this cycle
+		# a list that log all process that a going to pop from the process_list at the end of this cycle
 		pop_list = list()
-		for proc in PROCESS_LIST:
+		for proc in process_list:
 			for i in range(0, TYPE_OF_RESOURCE):
 				if proc.res[i].need > system_res.available[i]:
 					break
@@ -198,26 +206,38 @@ def main_func():
 			if i != TYPE_OF_RESOURCE:
 				continue
 			elif i == TYPE_OF_RESOURCE:
-				output_line.append(proc.name + '\n')
 				pop_list.append(proc)
-				for j in range(0, TYPE_OF_RESOURCE):
-					system_res.available[j] = system_res.available[j] + proc.res[j].allocation
-		# pop
+		# pop one Process a time, randomly. this can get us different safe queue
 		for i in range(0, len(pop_list)):
-			temp = PROCESS_LIST.index(pop_list[i])
-			PROCESS_LIST.pop(temp)
-		count = len(PROCESS_LIST)
+			i = randint(0, len(pop_list)-1)
+			temp = process_list.index(pop_list[i])
+			output_line.append(pop_list[i].name + '\n')
+			for j in range(0, TYPE_OF_RESOURCE):
+				system_res.available[j] = system_res.available[j] + pop_list[i].res[j].allocation
+			process_list.pop(temp)
+			break
+		count = len(process_list)
 		# see if dead lock happened
 		if len(pop_list) == 0:
 			output_line.append('!!!DEAD LOCK !!! \n')
-			break
+			return False
 	for line in output_line:
 		print line
 	outputfile = open('lab-2.result', 'w')
 	outputfile.writelines(output_line)
 	outputfile.close()
+	return True
 
 if __name__ == "__main__":
-	# 调用主函数
-	main_func()
+	# 输出一种可调度状态
+	STATUS = main_func()
+	while STATUS is False:
+		STATUS = main_func()
+
+	'''
+	# 输出一种死锁状态
+	while STATUS is True:
+		STATUS = main_func()
+	''
+
   
