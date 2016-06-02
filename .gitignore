@@ -5,4 +5,4 @@ browse.VC.db
 
 *.pyc
 
-result.txt
+*.result

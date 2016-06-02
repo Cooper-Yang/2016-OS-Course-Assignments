@@ -98,7 +98,7 @@ def main_func(input_argv=None):
 		task_count = int(input_argv[1])
 	else:
 		task_count = int(input_argv[1])
-	outputfile = open('result.txt', 'w')
+	outputfile = open('lab-1.result', 'w')
 
 	remaining = task_count + task_count
 	producer_count = task_count
@@ -126,6 +126,7 @@ def main_func(input_argv=None):
 		print lines
 	if outputfile != None:
 		outputfile.writelines(RESULT)
+		outputfile.close()
 	print 'completed !'
 	return
 

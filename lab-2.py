@@ -15,10 +15,10 @@
 from random import randint
 from copy import deepcopy
 
-TYPE_OF_RESOURCE = 4
-MAX_RESOURCE = 100
+TYPE_OF_RESOURCE = 8
+MAX_RESOURCE = 400
 MIN_RESOURCE = 50
-NUM_OF_PROCESS = 10
+NUM_OF_PROCESS = 20
 
 MAX_P_VALUE = 20
 MIN_P_VALUE = 10
@@ -48,7 +48,7 @@ class System(object):
 			pass
 		else:
 			raise ValueError
-		for i in range(0, type_num):
+		for _ in range(0, type_num):
 			rand_num = randint(min_res, max_res)
 			self.resource.append(rand_num)
 			# don't forget to change here if you want to change the init value of system available resource
@@ -98,6 +98,7 @@ class ProcessAttr(object):
 		'''
 		if max_value != None and min_value != None:
 			self.max = randint(min_value, max_value)
+			# ajust here to get a better look of resource allocation
 			self.allocation = randint(min_value, self.max)
 			self.need = self.max - self.allocation
 		elif max_value is None and min_value is None:
@@ -111,20 +112,28 @@ def main_func():
 	'''
 	主函数
 	'''
-	output_list = list()
+	#output_list = list()
 	output_line = list()
 	system_res = System()
-	# min value of a allocation resource of a process
+	'''
+	add coustom system resource info here
+
+	system_res.resource = []
+	system_res.available = []
+	'''
+	# min value of a allocation resource of a process's max
 	min_list = list()
 	for _ in range(0, TYPE_OF_RESOURCE):
 		min_list.append(0)
 	# init process in this system
 	for i in range(0, NUM_OF_PROCESS):
-		temp = Process(TYPE_OF_RESOURCE, min_list, system_res.available)
-		temp.name = 'Process' + str(i).rjust(2)
-		PROCESS_LIST.append(temp)
+		temp = Process(TYPE_OF_RESOURCE, min_list, randint(system_res.available, system_res.resource))
+		temp.name = 'Process' + str(i).rjust(3)
 		for j in range(0, TYPE_OF_RESOURCE):
 			system_res.available[j] = system_res.available[j] - temp.res[j].allocation
+			if system_res.available[j] < 0:
+				system_res.available[j] = 0
+		PROCESS_LIST.append(temp)
 		# output the init state of all process
 		max_attr = ' max -'
 		allocation_attr = ' allocation -'
@@ -135,21 +144,45 @@ def main_func():
 			need_attr = need_attr + str(temp.res[j].need).rjust(4)
 		line = temp.name + ':' + max_attr + allocation_attr + need_attr + '\n'
 		output_line.append(line)
-		max_attr = None
-		allocation_attr = None
-		need_attr = None
-		line = None
-		temp = None
+	'''
+	add coustom process resource info here
+
+	PROCESS_LIST[0] = Process()
+	PROCESS_LIST[0].res[0].max = int()
+	PROCESS_LIST[0].res[0].allocation = int()
+	PROCESS_LIST[0].res[0].need = int()
+	PROCESS_LIST[0].res[1]
+	...
+	PROCESS_LIST[0].res[n]
+	PROCESS_LIST[0].name = ''
+	PROCESS_LIST[1]
+	...
+	PROCESS_LIST[n]
+
+	for i in range(0, len(PROCESS_LIST)):
+		max_attr = ' max -'
+		allocation_attr = ' allocation -'
+		need_attr = ' need -'
+		for j in range(0, TYPE_OF_RESOURCE):
+			max_attr = max_attr + str(temp.res[j].max).rjust(4)
+			allocation_attr = allocation_attr + str(temp.res[j].allocation).rjust(4)
+			need_attr = need_attr + str(temp.res[j].need).rjust(4)
+		line = temp.name + ':' + max_attr + allocation_attr + need_attr + '\n'
+		output_line.append(line)
+		del max_attr
+		del allocation_attr
+		del need_attr
+		del line
+		del temp
+	'''
+	# output the init state of system
 	resource_attr = ' resource -'
 	available_attr = ' available -'
 	for j in range(0, TYPE_OF_RESOURCE):
-		resource_attr = resource_attr + ' ' + str(system_res.resource[j]).rjust(4)
-		available_attr = available_attr + ' ' + str(system_res.available[j]).rjust(4)
-	line = 'System :' + resource_attr + available_attr + '\n'
+		resource_attr = resource_attr + str(system_res.resource[j]).rjust(4)
+		available_attr = available_attr + str(system_res.available[j]).rjust(4)
+	line = '\nSystem :' + resource_attr + available_attr + '\n\n'
 	output_line.append(line)
-	resource_attr = None
-	available_attr = None
-	line = None
 	# banker's algorithm
 	count = NUM_OF_PROCESS
 	while count != 0:
@@ -180,6 +213,9 @@ def main_func():
 			break
 	for line in output_line:
 		print line
+	outputfile = open('lab-2.result', 'w')
+	outputfile.writelines(output_line)
+	outputfile.close()
 
 if __name__ == "__main__":
 	# 调用主函数
