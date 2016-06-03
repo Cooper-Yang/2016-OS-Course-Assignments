@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
+
+
 # 页式存储逻辑地址到物理地址映射
 
 * 条件：64位地址空间
@@ -39,13 +41,15 @@ class PageTable(object):
 		# if the last page can not be full fill
 		if temp_rest != 0:
 			temp_num += 1
-		for num in range(0, temp_num):
+		num = 0
+		while num < temp_num:
 			# if the last page can not be full fill
 			if num == temp_num - 1 and temp_rest != 0:
 				temp = Page(record_size, page_size, temp_rest)
 			temp = Page(record_size, page_size)
 			self.page.append(temp)
 			self.num_of_page += 1
+			num += 1
 		return
 	def random_data_gen(self, data_set=None):
 		'''
@@ -54,15 +58,17 @@ class PageTable(object):
 		temp = list(data_set)
 		current = 0
 		count = self.page[current].num_of_record
-		for _ in range(0, self.num_of_record):
-			rand_num = randint(0, len(temp))
+		counter = 0
+		while counter < self.num_of_record:
+			rand_num = randint(0, len(temp)-1)
 			if count != 0:
 				self.page[current].data.add(temp[rand_num])
-				data_set.pop(rand_num)
+				temp.pop(rand_num)
 				count -= 1
 			else:
 				current += 1
 				count = self.page[current].num_of_record
+			counter += 1
 	def order_data_gen(self):
 		'''
 		fill ordered data to all page record
@@ -70,14 +76,26 @@ class PageTable(object):
 		'''
 		current = 0
 		count = self.page[current].num_of_record
-		for num in range(0, self.num_of_record):
+		num = 0
+		while num < self.num_of_record:
 			if count != 0:
 				self.page[current].data.add(num)
 				count -= 1
 			else:
 				current += 1
-				count = self.page[current].num_of_record
+				# careful !
+				count = self.page[current].num_of_record - 1
+				self.page[current].data.add(num)
+			num += 1
 		return
+	def get_data(self, record_num=None):
+		'''
+		get the data of the specified record number
+		'''
+		page_num = record_num / self.record_per_page
+		offset = record_num % self.record_per_page
+		data = self.page[page_num].get_data(offset)
+		return data
 
 class Page(object):
 	'''
@@ -94,6 +112,13 @@ class Page(object):
 			self.num_of_record = record_num
 		else:
 			self.num_of_record = page_size / record_size
+	def get_data(self, input_offset=None):
+		'''
+		return the data of specified offset
+		'''
+		return list(self.data)[input_offset]
+
+sys.argv = [0, 2**45, 2**50, 3, '0xF0123456789ABCDE']
 
 if __name__ == "__main__":
 	if len(sys.argv) > 4:
@@ -104,22 +129,56 @@ if __name__ == "__main__":
 		# number of level
 		sys.argv[3] = int(sys.argv[3])
 		sys.argv[4] = int(sys.argv[4], 16)
+		if sys.argv[4] < sys.argv[2]:
+			raise ValueError
 		ADDR_SPACE = 2 ** 64
-		NUM_OF_PHYSICAL_BLOCK = ADDR_SPACE / sys.argv[2]
-		RECORD_NUM_OF_LAST_PAGE_TABLE = NUM_OF_PHYSICAL_BLOCK / sys.argv[2] * sys.argv[1]
+		RECORD_NUM_OF_LAST_PAGE_TABLE = ADDR_SPACE / sys.argv[2]
 		# take the TABLE[0] spot when init, so there won't have 'page table level 0'
-		TABLE = [[]]
+		TABLE = []
 		POINTER = None
-		DATA_SET = set(list(range(NUM_OF_PHYSICAL_BLOCK-RECORD_NUM_OF_LAST_PAGE_TABLE, NUM_OF_PHYSICAL_BLOCK)))
 		# init page table
 		for i in range(0, sys.argv[3]):
 			TEMP = PageTable(RECORD_NUM_OF_LAST_PAGE_TABLE, sys.argv[1], sys.argv[2], POINTER)
-			RECORD_NUM_OF_LAST_PAGE_TABLE = len(TEMP)
 			if i == 0:
 				TEMP.order_data_gen()
 			else:
-				TEMP.random_data_gen(DATA_SET)
-			TABLE.append(TEMP)
+				TEMP.random_data_gen(set(list(range(0, RECORD_NUM_OF_LAST_PAGE_TABLE))))
+			TABLE.insert(0, TEMP)
+			RECORD_NUM_OF_LAST_PAGE_TABLE = len(TEMP)
 			POINTER = TEMP
+		# calculating the physical address
+		TRACE = list()
+		OFFSET = sys.argv[4] % sys.argv[2]
+		PHY_BLOCK_NUM = int()
+		TEMP = sys.argv[4] / sys.argv[2]
+		TRACE.insert(0, TEMP)
+		for i in range(0, sys.argv[3] - 1):
+			try:
+				i = (sys.argv[3] - 2) % i
+			except ZeroDivisionError:
+				if sys.argv[3] - 2 < 0:
+					i = 0
+				else:
+					i = sys.argv[3] - 2
+			TEMP = TEMP / TABLE[i].record_per_page
+			TRACE.insert(0, TEMP)
+		# print the result
+		LINES = list()
+		for i in range(0, sys.argv[3]):
+			RESULT = TABLE[i].get_data(TRACE[i])
+			line = 'Trace - PageTable' + str(i).rjust(3) + ':'
+			line = line + ' page - ' + hex(TRACE[i]/TABLE[i].record_per_page)
+			line = line + ' offset - ' + hex(TRACE[i]%TABLE[i].record_per_page)
+			line = line + ' data - ' + hex(RESULT) + '\n'
+			print line
+			LINES.append(line)
+		LINE = '\nPhysical Block (Hex): ' + hex(RESULT) + ' Offset: ' + hex(OFFSET)
+		print LINE
+		LINES.append(line)
+		LINE = 'Physical Block: (Dec)' + str(RESULT) + ' Offset: ' + str(OFFSET)
+		print LINE
+		LINES.append(line)
+		OUTPUT_FILE = open('lab-3.result', 'w')
+		OUTPUT_FILE.writelines(LINES)
 	else:
 		raise ValueError
