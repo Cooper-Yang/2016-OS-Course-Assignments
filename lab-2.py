@@ -1,25 +1,33 @@
 # -*- coding: utf-8 -*-
 '''
-# 银行家算法程序
+OS Course Exp - 1: banker's algorithm
 
-* 输入
-  * `p`: 进程数量
-  * `r`：资源数量
-  * 各进程的 `max`, `allocation`
+Usage:
+	python lab-2.py [output_option]
+	
+	# 若 output_option 为1，打印一种可调度状态
+	# 若 output_option 为0，打印一种死锁
+	
+	# 使用了随机数生成器，可以修改参数以自定义系统中的资源类别和资源的最大最小值
+	# 进程的初始状态会根据设定的系统资源参数自动生成
 
-* 输出
-  * 若产生死锁，打印提示：`死锁状态`。
-  * 否则，给出一种调度顺序。
 '''
 
 from random import randint
 from copy import deepcopy
+import sys
 
+# 系统资源种类
 TYPE_OF_RESOURCE = 6
+# 最大系统资源
 MAX_RESOURCE = 400
+# 最小系统资源
 MIN_RESOURCE = 50
+# 进程数量
 NUM_OF_PROCESS = 15
 
+# 若不手动输入系统资源和进程资源的话，以下两个参数没用
+# 进程随机分配的最大最小资源
 MAX_P_VALUE = 20
 MIN_P_VALUE = 10
 
@@ -109,7 +117,7 @@ class ProcessAttr(object):
 		else:
 			raise ValueError
 
-def main_func():
+def main_func(output_option=None):
 	'''
 	主函数
 	'''
@@ -193,6 +201,7 @@ def main_func():
 	output_line.append(line)
 	# banker's algorithm
 	count = NUM_OF_PROCESS
+	output_line.append('Starting banker\'s algorithm, generating safe sequence ...\n\n')
 	while count != 0:
 		# a list that log all process that a going to pop from the process_list at the end of this cycle
 		pop_list = list()
@@ -207,7 +216,7 @@ def main_func():
 				continue
 			elif i == TYPE_OF_RESOURCE:
 				pop_list.append(proc)
-		# pop one Process a time, randomly. this can get us different safe queue
+		# pop one Process a time, randomly. this can get us different safe sequence
 		for i in range(0, len(pop_list)):
 			i = randint(0, len(pop_list)-1)
 			temp = process_list.index(pop_list[i])
@@ -220,24 +229,35 @@ def main_func():
 		# see if dead lock happened
 		if len(pop_list) == 0:
 			output_line.append('!!!DEAD LOCK !!! \n')
+			if output_option == '0':
+				for line in output_line:
+					print line
+				outputfile = open('lab-2.result', 'w')
+				outputfile.writelines(output_line)
+				outputfile.close()
 			return False
-	for line in output_line:
-		print line
-	outputfile = open('lab-2.result', 'w')
-	outputfile.writelines(output_line)
-	outputfile.close()
+	if output_option == '1':
+		for line in output_line:
+			print line
+		outputfile = open('lab-2.result', 'w')
+		outputfile.writelines(output_line)
+		outputfile.close()
 	return True
 
 if __name__ == "__main__":
-	# 输出一种可调度状态
-	STATUS = main_func()
-	while STATUS is False:
-		STATUS = main_func()
-
-	'''
-	# 输出一种死锁状态
-	while STATUS is True:
-		STATUS = main_func()
-	''
-
-  
+	#sys.argv[1] = 1
+	if len(sys.argv) > 1:
+		if sys.argv[1] == '1' or sys.argv[1] == '0':
+			STATUS = main_func(sys.argv[1])
+			if sys.argv[1] == '1':
+				# 输出一种可调度状态
+				while STATUS is False:
+					STATUS = main_func(sys.argv[1])
+			if sys.argv[1] == '0':
+				# 输出一种死锁状态
+				while STATUS is True:
+					STATUS = main_func(sys.argv[1])
+		else:
+			raise ValueError
+	else:
+		raise ValueError
