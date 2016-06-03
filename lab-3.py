@@ -1,6 +1,18 @@
 # -*- coding: utf-8 -*-
 '''
+OS Course Exp - 3: visual memory
 
+Usage:
+	python lab-3.py [record size] [page size] [number of level] [input address(hex) like 0x123]
+
+	if you have not type anything, default value is 2**38, 2**45, 4, '0xF0123456789ABCDE'
+
+InputError will raise if:
+	arguments less than four
+	record size, page size, number of level not pure digit
+	input address not well formated
+	input address < page size
+	number of level < 1
 
 # 页式存储逻辑地址到物理地址映射
 
@@ -17,13 +29,22 @@
 import sys
 from random import randint
 
+DOC = __doc__
+class InputError(Exception):
+	'''
+	when input illegal
+	'''
+	def __str__(self):
+		print DOC
+		return
+
 class PageTable(object):
 	'''
 	Page Table
 	'''
 	def __init__(self, record_num=None, record_size=None, page_size=None, pointer=None):
 		if page_size % record_size != 0:
-			raise ValueError
+			raise InputError
 		self.num_of_record = record_num
 		self.page = list()
 		self.num_of_page = int()
@@ -103,7 +124,7 @@ class Page(object):
 	'''
 	def __init__(self, record_size=None, page_size=None, record_num=None):
 		if record_size > page_size or page_size % record_size != 0:
-			raise ValueError
+			raise InputError
 		self.record_size = record_size
 		self.size = page_size
 		self.data = set()
@@ -118,19 +139,28 @@ class Page(object):
 		'''
 		return list(self.data)[input_offset]
 
-sys.argv = [0, 2**45, 2**50, 3, '0xF0123456789ABCDE']
-
 if __name__ == "__main__":
+	LINES = list()
+	if len(sys.argv) == 1:
+		sys.argv = [0, 2**38, 2**45, 4, '0xF0123456789ABCDE']
+		LINE = 'using default value ...\n'
+		print LINE
+		LINES.append(LINE)
 	if len(sys.argv) > 4:
 		# record size
-		sys.argv[1] = int(sys.argv[1])
-		# page size
-		sys.argv[2] = int(sys.argv[2])
-		# number of level
-		sys.argv[3] = int(sys.argv[3])
-		sys.argv[4] = int(sys.argv[4], 16)
-		if sys.argv[4] < sys.argv[2]:
-			raise ValueError
+		try:
+			sys.argv[1] = int(sys.argv[1])
+			# page size
+			sys.argv[2] = int(sys.argv[2])
+			# number of level
+			sys.argv[3] = int(sys.argv[3])
+			if sys.argv[3] < 1:
+				raise InputError
+			sys.argv[4] = int(sys.argv[4], 16)
+			if sys.argv[4] < sys.argv[2]:
+				raise InputError
+		except ValueError:
+			raise InputError
 		ADDR_SPACE = 2 ** 64
 		RECORD_NUM_OF_LAST_PAGE_TABLE = ADDR_SPACE / sys.argv[2]
 		# take the TABLE[0] spot when init, so there won't have 'page table level 0'
@@ -163,7 +193,6 @@ if __name__ == "__main__":
 			TEMP = TEMP / TABLE[i].record_per_page
 			TRACE.insert(0, TEMP)
 		# print the result
-		LINES = list()
 		for i in range(0, sys.argv[3]):
 			RESULT = TABLE[i].get_data(TRACE[i])
 			line = 'Trace - PageTable' + str(i).rjust(3) + ':'
@@ -175,10 +204,10 @@ if __name__ == "__main__":
 		LINE = '\nPhysical Block (Hex): ' + hex(RESULT) + ' Offset: ' + hex(OFFSET)
 		print LINE
 		LINES.append(line)
-		LINE = 'Physical Block: (Dec)' + str(RESULT) + ' Offset: ' + str(OFFSET)
+		LINE = 'Physical Block (Dec):' + str(RESULT) + ' Offset: ' + str(OFFSET)
 		print LINE
 		LINES.append(line)
 		OUTPUT_FILE = open('lab-3.result', 'w')
 		OUTPUT_FILE.writelines(LINES)
 	else:
-		raise ValueError
+		raise InputError

@@ -4,7 +4,10 @@ OS Course Exp - 1: consumer and producer
 
 Usage:
 	python lab-1.py [number of producer and consumer]
-	# to prevent ultimate blocking, the input number will set both producer and consumer number
+	
+	To prevent ultimate blocking, the input number will set both producer and consumer number
+	
+	Will automatically setting number to 8 if not specified
 '''
 from threading import Thread
 from threading import Lock

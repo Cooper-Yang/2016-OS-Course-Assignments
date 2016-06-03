@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
 '''
-OS Course Exp - 1: banker's algorithm
+OS Course Exp - 2: banker's algorithm
 
 Usage:
 	python lab-2.py [output_option]
-	
+
 	# 若 output_option 为1，打印一种可调度状态
 	# 若 output_option 为0，打印一种死锁
-	
+
 	# 使用了随机数生成器，可以修改参数以自定义系统中的资源类别和资源的最大最小值
 	# 进程的初始状态会根据设定的系统资源参数自动生成
-
 '''
 
 from random import randint
 from copy import deepcopy
 import sys
+
+DOC = __doc__
+class InputError(Exception):
+	'''
+	when input illegal
+	'''
+	def __str__(self):
+		print DOC
+		return
 
 # 系统资源种类
 TYPE_OF_RESOURCE = 6
@@ -53,7 +61,7 @@ class System(object):
 		elif type != None and max_res != None and min_res != None:
 			pass
 		else:
-			raise ValueError
+			raise InputError
 		for _ in range(0, type_num):
 			rand_num = randint(min_res, max_res)
 			self.resource.append(rand_num)
@@ -79,7 +87,7 @@ class Process(object):
 		elif type_num != None and min_value != None and max_value != None:
 			pass
 		else:
-			raise ValueError
+			raise InputError
 
 		self.res = list()
 		self.name = str()
@@ -115,7 +123,7 @@ class ProcessAttr(object):
 			self.allocation = randint(MIN_P_VALUE, self.max)
 			self.need = self.max - self.allocation
 		else:
-			raise ValueError
+			raise InputError
 
 def main_func(output_option=None):
 	'''
@@ -258,6 +266,6 @@ if __name__ == "__main__":
 				while STATUS is True:
 					STATUS = main_func(sys.argv[1])
 		else:
-			raise ValueError
+			raise InputError
 	else:
-		raise ValueError
+		raise InputError
