@@ -88,7 +88,7 @@ class PageTable(object):
 				count -= 1
 			else:
 				current += 1
-				count = self.page[current].num_of_record
+				count = self.page[current].num_of_record - 1
 			counter += 1
 	def order_data_gen(self):
 		'''
@@ -142,8 +142,8 @@ class Page(object):
 if __name__ == "__main__":
 	LINES = list()
 	if len(sys.argv) == 1:
-		sys.argv = [0, 2**38, 2**45, 4, '0xF0123456789ABCDE']
-		LINE = 'using default value ...\n'
+		sys.argv = [0, 2**38, 2**45, 4, '0xFEDCBA9876543210']
+		LINE = 'using default value ...\n\n'
 		print LINE
 		LINES.append(LINE)
 	if len(sys.argv) > 4:
@@ -196,17 +196,17 @@ if __name__ == "__main__":
 		for i in range(0, sys.argv[3]):
 			RESULT = TABLE[i].get_data(TRACE[i])
 			line = 'Trace - PageTable' + str(i).rjust(3) + ':'
-			line = line + ' page - ' + hex(TRACE[i]/TABLE[i].record_per_page)
-			line = line + ' offset - ' + hex(TRACE[i]%TABLE[i].record_per_page)
-			line = line + ' data - ' + hex(RESULT) + '\n'
+			line = line + ' page - ' + hex(TRACE[i]/TABLE[i].record_per_page).rjust(10)
+			line = line + ' offset - ' + hex(TRACE[i]%TABLE[i].record_per_page).rjust(10)
+			line = line + ' data - ' + hex(RESULT).rjust(10) + '\n'
 			print line
 			LINES.append(line)
-		LINE = '\nPhysical Block (Hex): ' + hex(RESULT) + ' Offset: ' + hex(OFFSET)
+		LINE = '\nPhysical Block (Hex):' + hex(RESULT).rjust(12) + ' Offset: ' + hex(OFFSET).rjust(18) + '\n'
 		print LINE
-		LINES.append(line)
-		LINE = 'Physical Block (Dec):' + str(RESULT) + ' Offset: ' + str(OFFSET)
+		LINES.append(LINE)
+		LINE = 'Physical Block (Dec):' + str(RESULT).rjust(12) + ' Offset: ' + str(OFFSET).rjust(18) + '\n'
 		print LINE
-		LINES.append(line)
+		LINES.append(LINE)
 		OUTPUT_FILE = open('lab-3.result', 'w')
 		OUTPUT_FILE.writelines(LINES)
 	else:
