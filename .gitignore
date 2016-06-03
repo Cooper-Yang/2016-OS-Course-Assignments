@@ -1,6 +1,8 @@
 #Visual Studio Code config file
 .vscode/
 
+.idea/
+
 browse.VC.db
 
 *.pyc
