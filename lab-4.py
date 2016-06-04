@@ -187,14 +187,14 @@ class BlockIndex(object):
 			k = 0
 			while k < len(self.block_list):
 				lines.append('Block ' + str(k).rjust(4) + ' : address - ' + hex(self.block_list[k].num)+' :\n')
-				l = 0
+				count = 0
 				hex_list = list()
-				while l < self.block_list[k].num_of_record:
+				while count < self.block_list[k].num_of_record:
 					if content_fold is True:
-						hex_list.append(hex(l))
+						hex_list.append(hex(count))
 					else:
-						hex_list.append(hex(self.block_list[k].data[l]))
-					l += 1
+						hex_list.append(hex(self.block_list[k].data[count]))
+						count += 1
 				k += 1
 				lines.append(str(hex_list) + '\n')
 		lines.append('\n')
@@ -271,7 +271,7 @@ if __name__ == "__main__":
 		print __doc__
 		raise NameError
 	MY_FILE = IndexNode(FILE_NAME, OWNER, FILE_SIZE, LEVEL, BLOCK_SIZE, RECORD_SIZE)
-	OUTPUT = open('lab-4.result','w')
+	OUTPUT = open('lab-4.result', 'w')
 	if len(sys.argv) > 7 and sys.argv[7] == '1':
 		OUTPUT.writelines(MY_FILE.output(content_fold=False))
 	else:
