@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 OS Course Exp - 3: visual memory
 
 Usage:
@@ -25,23 +25,23 @@ InputError will raise if:
 * 输出：物理地址（物理块号，块内偏移）
 
 说明：页表随机产生，为便于验证可令逻辑页号 `n` 的物理页号为 `n`。
-'''
+"""
 import sys
 from random import randint
 
 DOC = __doc__
 class InputError(Exception):
-	'''
+	"""
 	when input illegal
-	'''
+	"""
 	def __str__(self):
 		print DOC
 		return
 
 class PageTable(object):
-	'''
+	"""
 	Page Table
-	'''
+	"""
 	def __init__(self, record_num=None, record_size=None, page_size=None, pointer=None):
 		if page_size % record_size != 0:
 			raise InputError
@@ -54,9 +54,9 @@ class PageTable(object):
 	def __len__(self):
 		return self.num_of_page
 	def generate(self, record_size=None, page_size=None):
-		'''
+		"""
 		generating Page
-		'''
+		"""
 		temp_num = self.num_of_record / self.record_per_page
 		temp_rest = self.num_of_record % self.record_per_page
 		# if the last page can not be full fill
@@ -73,9 +73,9 @@ class PageTable(object):
 			num += 1
 		return
 	def random_data_gen(self, data_set=None):
-		'''
+		"""
 		fill random data to all page record
-		'''
+		"""
 		temp = list(data_set)
 		current = 0
 		count = self.page[current].num_of_record
@@ -91,10 +91,10 @@ class PageTable(object):
 				count = self.page[current].num_of_record - 1
 			counter += 1
 	def order_data_gen(self):
-		'''
+		"""
 		fill ordered data to all page record
 		which is the physical block num
-		'''
+		"""
 		current = 0
 		count = self.page[current].num_of_record
 		num = 0
@@ -110,18 +110,18 @@ class PageTable(object):
 			num += 1
 		return
 	def get_data(self, record_num=None):
-		'''
+		"""
 		get the data of the specified record number
-		'''
+		"""
 		page_num = record_num / self.record_per_page
 		offset = record_num % self.record_per_page
 		data = self.page[page_num].get_data(offset)
 		return data
 
 class Page(object):
-	'''
+	"""
 	Page
-	'''
+	"""
 	def __init__(self, record_size=None, page_size=None, record_num=None):
 		if record_size > page_size or page_size % record_size != 0:
 			raise InputError
@@ -129,14 +129,14 @@ class Page(object):
 		self.size = page_size
 		self.data = set()
 		# if the last page can not be full fill
-		if record_num != None:
+		if record_num is not None:
 			self.num_of_record = record_num
 		else:
 			self.num_of_record = page_size / record_size
 	def get_data(self, input_offset=None):
-		'''
+		"""
 		return the data of specified offset
-		'''
+		"""
 		return list(self.data)[input_offset]
 
 if __name__ == "__main__":

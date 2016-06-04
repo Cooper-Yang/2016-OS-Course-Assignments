@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 OS Course Exp - 2: banker's algorithm
 
 Usage:
@@ -10,7 +10,7 @@ Usage:
 
 	# 使用了随机数生成器，可以修改参数以自定义系统中的资源类别和资源的最大最小值
 	# 进程的初始状态会根据设定的系统资源参数自动生成
-'''
+"""
 
 from random import randint
 from copy import deepcopy
@@ -18,9 +18,9 @@ import sys
 
 DOC = __doc__
 class InputError(Exception):
-	'''
+	"""
 	when input illegal
-	'''
+	"""
 	def __str__(self):
 		print DOC
 		return
@@ -40,25 +40,25 @@ MAX_P_VALUE = 20
 MIN_P_VALUE = 10
 
 class System(object):
-	'''
+	"""
 	System Attribute
-	'''
+	"""
 	def __init__(self, type_num=None, max_res=None, min_res=None):
 		self.resource = list()
 		self.available = list()
 		self.generate(type_num, max_res, min_res)
 	def generate(self, type_num=None, max_res=None, min_res=None):
-		'''
+		"""
 		using module random to generate the system attribute
-		'''
+		"""
 		if type_num is None and max_res is None and min_res is None:
 			type_num = TYPE_OF_RESOURCE
 			max_res = MAX_RESOURCE
 			min_res = MIN_RESOURCE
-		elif type != None and max_res is None and min_res is None:
+		elif type is not None and max_res is None and min_res is None:
 			max_res = MAX_RESOURCE
 			min_res = MIN_RESOURCE
-		elif type != None and max_res != None and min_res != None:
+		elif type is not None and max_res is not None and min_res is not None:
 			pass
 		else:
 			raise InputError
@@ -70,21 +70,21 @@ class System(object):
 		return
 
 class Process(object):
-	'''
+	"""
 	Process
-	'''
+	"""
 	def __init__(self, type_num=None, min_value=None, max_value=None, avail_alloc=None):
-		'''
+		"""
 		the input min_value and max_value should be a list
-		'''
+		"""
 		if type_num is None and min_value is None and max_value is None:
 			type_num = TYPE_OF_RESOURCE
 			min_value = MIN_P_VALUE
 			max_value = MAX_P_VALUE
-		elif type_num != None and min_value is None and max_value is None:
+		elif type_num is not None and min_value is None and max_value is None:
 			min_value = MIN_P_VALUE
 			max_value = MAX_P_VALUE
-		elif type_num != None and min_value != None and max_value != None:
+		elif type_num is not None and min_value is not None and max_value is not None:
 			pass
 		else:
 			raise InputError
@@ -94,24 +94,22 @@ class Process(object):
 		for i in range(0, type_num):
 			resource = ProcessAttr(min_value[i], max_value[i], avail_alloc[i])
 			self.res.append(resource)
-			resource = None
 		return
 
 class ProcessAttr(object):
-	'''
+	"""
 	Process Attribute
-	'''
+	"""
 	def __init__(self, min_value=None, max_value=None, avail_alloc=None):
 		self.max = int()
 		self.allocation = int()
 		self.need = int()
 		self.generate(min_value, max_value, avail_alloc)
 	def generate(self, min_value=None, max_value=None, avail_alloc=None):
-		'''
+		"""
 		using module random to generate the process attribute
-		'''
-		if max_value != None and min_value != None:
-			# ajust here if dead lock happened too much
+		"""
+		if max_value is not None and min_value is not None:
 			self.max = randint(min_value, max_value)
 			if self.max < avail_alloc:
 				self.allocation = randint(min_value, self.max)
@@ -126,19 +124,19 @@ class ProcessAttr(object):
 			raise InputError
 
 def main_func(output_option=None):
-	'''
+	"""
 	主函数
-	'''
+	"""
 	#output_list = list()
 	output_line = list()
 	system_res = System()
 	process_list = list()
-	'''
+	"""
 	add coustom system resource info here
 
 	system_res.resource = []
 	system_res.available = []
-	'''
+	"""
 	# min value of a allocation resource of a process's max
 	min_list = list()
 	for _ in range(0, TYPE_OF_RESOURCE):
@@ -169,7 +167,7 @@ def main_func(output_option=None):
 	# 	system_res.available[j] = system_res.available[j] - minus
 	# 	system_res.resource[j] = system_res.resource[j] - minus
 	'''
-	add coustom process resource info here
+	add custom process resource info here
 
 	process_list[0] = Process()
 	process_list[0].res[0].max = int()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 OS Course Exp - 1: consumer and producer
 
 Usage:
@@ -8,7 +8,7 @@ Usage:
 	To prevent ultimate blocking, the input number will set both producer and consumer number
 	
 	Will automatically setting number to 8 if not specified
-'''
+"""
 from threading import Thread
 from threading import Lock
 from threading import Semaphore
@@ -18,7 +18,7 @@ import random
 import sys
 
 #init
-#Queue object contain a semaphoe machinism itself
+#Queue object contain a semaphore mechanism itself
 LENGTH = 4
 SHARE_ZONE = Queue.Queue(LENGTH)
 FULL = Semaphore(LENGTH)
@@ -29,9 +29,9 @@ DATA = 'whatever'
 RESULT = list()
 
 def producer(num=None):
-	'''
+	"""
 	producer
-	'''
+	"""
 	with STATUS:
 		when_enter = SHARE_ZONE.qsize()
 		if when_enter == LENGTH:
@@ -48,9 +48,9 @@ def producer(num=None):
 	return
 
 def consumer(num=None):
-	'''
+	"""
 	consumer
-	'''
+	"""
 	with STATUS:
 		when_enter = SHARE_ZONE.qsize()
 		if when_enter == 0:
@@ -67,13 +67,15 @@ def consumer(num=None):
 	return
 
 def main_func(input_argv=None):
-	'''
+	"""
 	主函数，生产者数量必须与消费者数量相同，否则会死锁
-	'''
+	"""
 	if len(input_argv) == 1:
 		task_count = 8
 	elif len(input_argv) > 1:
 		task_count = int(input_argv[1])
+	else:
+		raise ValueError
 	outputfile = open('lab-1.result', 'w')
 
 	remaining = task_count + task_count
