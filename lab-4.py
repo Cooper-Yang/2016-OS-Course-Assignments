@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+OS Course Exp - 4: i-Node
+
+Usage:
+	python lab-4.py [file_name] [owner] [file_size Byte] [level] [block_size] [record_size] [content fold = 0 or 1]
+
 # 混合索引逻辑地址到物理地址映射
 
 * 条件：自定义混合索引 `inode` 结构
@@ -12,6 +17,8 @@
 """
 from random import randint
 from time import strftime
+
+import sys
 
 TOTAL_BLOCK = 2**32
 
@@ -103,13 +110,13 @@ class BlockIndex(object):
 			self.record_size = record_size
 			self.record_per_block = block_size / record_size
 			# number of record the input data have
-			self.num_of_record = data_size / record_size
+			self.num_of_record = len(record_list)
 			# number of block the input data need
 			if data_size % block_size != 0:
-				self.num_of_block = data_size / block_size + 1
+				self.num_of_block = len(record_list) / self.record_per_block + 1
 				self.is_full_fill = False
 			else:
-				self.num_of_block = data_size / block_size
+				self.num_of_block = len(record_list) / self.record_per_block
 				self.is_full_fill = True
 			self.put_input_record_into_block(record_list)
 			self.index_list.sort()
@@ -142,6 +149,7 @@ class BlockIndex(object):
 				self.block_list.append(temp)
 				block_num = SYSTEM.alloc_block()
 				self.index_list.append(block_num)
+				current += 1
 				if current == self.num_of_block - 1 and self.is_full_fill is False:
 					temp = Block(block_num, special_num)
 				else:
@@ -149,12 +157,13 @@ class BlockIndex(object):
 				block_remain = temp.num_of_record
 				temp.data_append(input_record[counter])
 				block_remain -= 1
-				current += 1
 			counter += 1
-	def get_info(self, want_index_list=False):
+		# append the last Block or due to the mechanism of while it will be dropped
+		self.block_list.append(temp)
+	def get_info(self, content_fold=True):
 		"""
 		Return specified size of data according to specified index
-		:type want_index_list: bool
+		:type content_fold: bool
 		"""
 		lines = list()
 		if self.level_num == 0:
@@ -163,14 +172,31 @@ class BlockIndex(object):
 			lines.append('Level ' + str(self.level_num) + ' Block Index Table:\n')
 			lines.append('\thave ' + str(self.num_of_record) + ' records\n')
 		lines.append('\thave ' + str(self.num_of_block) + ' blocks\n')
-		lines.append('\ttake ' + str(self.num_of_block * self.block_size) + ' space\n')
-		if want_index_list is True:
-			hex_list = list()
+		lines.append('\ttake ' + str(self.num_of_block * self.block_size) + ' Byte space\n')
+		if self.level_num == 0:
+			if content_fold is True:
+				pass
+			else:
+				hex_list = list()
+				k = 0
+				while k < len(self.index_list):
+					hex_list.append(hex(self.index_list[k]))
+					k += 1
+				lines.append(str(hex_list) + '\n')
+		else:
 			k = 0
-			while k < len(self.index_list):
-				hex_list.append(hex(self.index_list[k]))
+			while k < len(self.block_list):
+				lines.append('Block ' + str(k).rjust(4) + ' : address - ' + hex(self.block_list[k].num)+' :\n')
+				l = 0
+				hex_list = list()
+				while l < self.block_list[k].num_of_record:
+					if content_fold is True:
+						hex_list.append(hex(l))
+					else:
+						hex_list.append(hex(self.block_list[k].data[l]))
+					l += 1
 				k += 1
-			lines.append(str(hex_list) + '\n')
+				lines.append(str(hex_list) + '\n')
 		lines.append('\n')
 		return lines
 
@@ -208,10 +234,10 @@ class IndexNode(object):
 				temp = BlockIndex(i, self.file_size, self.block_size, self.record_size)
 			else:
 				data_size = self.block_index[i-1].num_of_block * self.record_size
-				temp = BlockIndex(i, data_size, self.block_size, self.record_size, self.block_index[0].index_list)
+				temp = BlockIndex(i, data_size, self.block_size, self.record_size, self.block_index[i-1].index_list)
 			self.block_index.append(temp)
 		return
-	def output(self, want_index_list=False):
+	def output(self, content_fold=False):
 		"""
 		output itself
 		:type want_index_list: bool
@@ -220,14 +246,35 @@ class IndexNode(object):
 		line.append('File Name: ' + str(self.file_name) + '\n')
 		line.append('Owner: ' + str(self.owner) + '\n')
 		line.append('Time: ' + str(self.time_stamp) + '\n')
-		line.append('File Size: ' + str(self.file_size) + '\n')
-		line.append('Index Level: ' + str(self.num_of_level) + '\n')
+		line.append('File Size: ' + str(self.file_size) + ' Byte\n')
+		line.append('Index Level: ' + str(self.num_of_level) + '\n\n')
 		for i in range(0, self.num_of_level+1):
-			line.extend(self.block_index[i].get_info(want_index_list))
+			line.extend(self.block_index[i].get_info(content_fold))
 		return line
 
-MYFILE = IndexNode('I am awosome', 'cooper', 2**20, 3, 2**9, 2**2)
-OUTPUT = open('lab-4.result','w')
-OUTPUT.writelines(MYFILE.output(want_index_list=True))
-print 'completed !'
+if __name__ == "__main__":
+	if len(sys.argv) > 6:
+		FILE_NAME = str(sys.argv[1])
+		OWNER = str(sys.argv[2])
+		FILE_SIZE = int(sys.argv[3])
+		LEVEL = int(sys.argv[4])
+		BLOCK_SIZE = int(sys.argv[4])
+		RECORD_SIZE = int(sys.argv[4])
+	elif len(sys.argv) == 1:
+		FILE_NAME = 'I am awesome'
+		OWNER = 'Cooper Yang'
+		FILE_SIZE = 1234567
+		LEVEL = 3
+		BLOCK_SIZE = 2**8
+		RECORD_SIZE = 2**2
+	else:
+		print __doc__
+		raise NameError
+	MY_FILE = IndexNode(FILE_NAME, OWNER, FILE_SIZE, LEVEL, BLOCK_SIZE, RECORD_SIZE)
+	OUTPUT = open('lab-4.result','w')
+	if len(sys.argv) > 7 and sys.argv[7] == '1':
+		OUTPUT.writelines(MY_FILE.output(content_fold=False))
+	else:
+		OUTPUT.writelines(MY_FILE.output(content_fold=True))
+	print 'completed !'
 
