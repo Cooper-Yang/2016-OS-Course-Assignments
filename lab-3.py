@@ -5,7 +5,7 @@ OS Course Exp - 3: visual memory
 Usage:
 	python lab-3.py [record size] [page size] [number of level] [input address(hex) like 0x123]
 
-	if you have not type anything, default value is 2**38, 2**45, 4, '0xF0123456789ABCDE'
+	if you have not type anything, default value is 2**4, 2**34, 4, '0xEDCBA9876543210'
 
 InputError will raise if:
 	arguments less than four
@@ -43,98 +43,6 @@ class InputError(Exception):
 		print DOC
 		return
 
-class PageTable(object):
-	"""
-	Page Table
-	"""
-	def __init__(self, record_num=None, record_size=None, page_size=None, pointer=None):
-		"""
-		:type record_num: int
-		:type record_size: int
-		:type page_size: int
-		:type pointer: PageTable
-		"""
-		if page_size % record_size != 0:
-			raise InputError
-		self.num_of_record = record_num
-		self.page = list()
-		self.num_of_page = int()
-		self.record_per_page = page_size / record_size
-		self.pointer = pointer
-		self.generate(record_size, page_size)
-	def __len__(self):
-		return self.num_of_page
-	def generate(self, record_size=None, page_size=None):
-		"""
-		generating Page
-		:type record_size: int
-		:type page_size: int
-		"""
-		temp_num = self.num_of_record / self.record_per_page
-		temp_rest = self.num_of_record % self.record_per_page
-		# if the last page can not be full fill
-		if temp_rest != 0:
-			temp_num += 1
-		num = 0
-		while num < temp_num:
-			# if the last page can not be full fill
-			if num == temp_num - 1 and temp_rest != 0:
-				temp = Page(record_size, page_size, temp_rest)
-			else:
-				pass
-			temp = Page(record_size, page_size)
-			self.page.append(temp)
-			self.num_of_page += 1
-			num += 1
-		return
-	def random_data_gen(self, data_set=None):
-		"""
-		fill random data to all page record
-		:type data_set: set
-		"""
-		temp = list(data_set)
-		current = 0
-		count = self.page[current].num_of_record
-		counter = 0
-		while counter < self.num_of_record:
-			rand_num = randint(0, len(temp)-1)
-			if count != 0:
-				self.page[current].data.add(temp[rand_num])
-				temp.pop(rand_num)
-				count -= 1
-			else:
-				current += 1
-				count = self.page[current].num_of_record - 1
-			counter += 1
-	def order_data_gen(self):
-		"""
-		fill ordered data to all page record
-		which is the physical block num
-		"""
-		current = 0
-		count = self.page[current].num_of_record
-		num = 0
-		while num < self.num_of_record:
-			if count != 0:
-				self.page[current].data.add(num)
-				count -= 1
-			else:
-				current += 1
-				# careful !
-				count = self.page[current].num_of_record - 1
-				self.page[current].data.add(num)
-			num += 1
-		return
-	def get_data(self, record_num=None):
-		"""
-		get the data of the specified record number
-		:type record_num: int
-		"""
-		page_num = record_num / self.record_per_page
-		offset = record_num % self.record_per_page
-		data = self.page[page_num].get_data(offset)
-		return data
-
 class Page(object):
 	"""
 	Page
@@ -162,16 +70,100 @@ class Page(object):
 		"""
 		return list(self.data)[input_offset]
 
+class PageTable(object):
+	"""
+	Page Table
+	"""
+	def __init__(self, record_num=None, record_size=None, page_size=None, pointer=None, is_ordered=False):
+		"""
+		:type record_num: int
+		:type record_size: int
+		:type page_size: int
+		:type pointer: PageTable
+		:type is_ordered: bool
+		"""
+		if page_size % record_size != 0:
+			raise InputError
+		self.num_of_record = record_num
+		self.page = list()
+		self.num_of_page = int()
+		self.record_per_page = page_size / record_size
+		self.pointer = pointer
+		self.is_ordered = is_ordered
+		if self.is_ordered is False:
+			self.generate(record_size, page_size)
+		else:
+			self.num_of_page = self.num_of_record / self.record_per_page
+			if self.num_of_record % self.record_per_page == 0:
+				pass
+			else:
+				self.num_of_page += 1
+	def __len__(self):
+		return self.num_of_page
+	def generate(self, record_size=None, page_size=None):
+		"""
+		generating Page
+		:type record_size: int
+		:type page_size: int
+		"""
+		temp_num = self.num_of_record / self.record_per_page
+		temp_rest = self.num_of_record % self.record_per_page
+		# if the last page can not be full fill
+		if temp_rest != 0:
+			temp_num += 1
+		num = 0
+		while num < temp_num:
+			# if the last page can not be full fill
+			if num == temp_num - 1 and temp_rest != 0:
+				temp = Page(record_size, page_size, temp_rest)
+			else:
+				temp = Page(record_size, page_size)
+			self.page.append(temp)
+			self.num_of_page += 1
+			num += 1
+		return
+	def random_data_gen(self, input_data_set=None):
+		"""
+		fill random data to all page record
+		:type input_data_set: set
+		"""
+		temp = list(input_data_set)
+		current = 0
+		count = self.page[current].num_of_record
+		counter = 0
+		while counter < self.num_of_record:
+			rand_num = randint(0, len(temp)-1)
+			if count != 0:
+				self.page[current].data.add(temp[rand_num])
+				temp.pop(rand_num)
+				count -= 1
+			else:
+				current += 1
+				count = self.page[current].num_of_record - 1
+			counter += 1
+	def get_data(self, record_num=None):
+		"""
+		get the data of the specified record number
+		:type record_num: int
+		"""
+		if self.is_ordered is True:
+			data = int(record_num)
+		else:
+			page_num = record_num / self.record_per_page
+			offset = record_num % self.record_per_page
+			data = self.page[page_num].get_data(offset)
+		return data
+
 if __name__ == "__main__":
 	LINES = list()
 	if len(sys.argv) == 1:
-		sys.argv = [0, 2**38, 2**45, 4, '0xFEDCBA9876543210']
+		sys.argv = [0, 2**4, 2**34, 4, '0xEDCBA9876543210']
 		LINE = 'using default value ...\n\n'
 		print LINE
 		LINES.append(LINE)
 	if len(sys.argv) > 4:
-		# record size
 		try:
+			# record size
 			sys.argv[1] = int(sys.argv[1])
 			# page size
 			sys.argv[2] = int(sys.argv[2])
@@ -190,21 +182,23 @@ if __name__ == "__main__":
 		POINTER = None
 		# init page table
 		for i in range(0, sys.argv[3]):
-			TEMP = PageTable(RECORD_NUM_OF_LAST_PAGE_TABLE, sys.argv[1], sys.argv[2], POINTER)
 			if i == 0:
-				TEMP.order_data_gen()
+				TEMP = PageTable(RECORD_NUM_OF_LAST_PAGE_TABLE, sys.argv[1], sys.argv[2], POINTER, is_ordered=True)
 			else:
+				TEMP = PageTable(RECORD_NUM_OF_LAST_PAGE_TABLE, sys.argv[1], sys.argv[2], POINTER)
+			if i > 0:
 				data_set = set()
 				k = 0
 				while k < RECORD_NUM_OF_LAST_PAGE_TABLE:
 					data_set.add(k)
+					k += 1
 				TEMP.random_data_gen(data_set)
 			TABLE.insert(0, TEMP)
 			RECORD_NUM_OF_LAST_PAGE_TABLE = len(TEMP)
 			POINTER = TEMP
 		# calculating the physical address
 		TRACE = list()
-		OFFSET = sys.argv[4] % sys.argv[2]
+		OFFSET = int(sys.argv[4] % sys.argv[2])
 		PHY_BLOCK_NUM = int()
 		TEMP = sys.argv[4] / sys.argv[2]
 		TRACE.insert(0, TEMP)
