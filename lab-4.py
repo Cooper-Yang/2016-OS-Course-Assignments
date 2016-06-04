@@ -194,7 +194,7 @@ class BlockIndex(object):
 						hex_list.append(hex(count))
 					else:
 						hex_list.append(hex(self.block_list[k].data[count]))
-						count += 1
+					count += 1
 				k += 1
 				lines.append(str(hex_list) + '\n')
 		lines.append('\n')
@@ -240,7 +240,7 @@ class IndexNode(object):
 	def output(self, content_fold=False):
 		"""
 		output itself
-		:type want_index_list: bool
+		:type content_fold: bool
 		"""
 		line = list()
 		line.append('File Name: ' + str(self.file_name) + '\n')
