@@ -14,6 +14,11 @@ InputError will raise if:
 	input address < page size
 	number of level < 1
 
+:type sys.argv[1]: int
+:type sys.argv[2]: int
+:type sys.argv[3]: int
+:type sys.argv[4]: str
+
 # 页式存储逻辑地址到物理地址映射
 
 * 条件：64位地址空间
@@ -43,6 +48,12 @@ class PageTable(object):
 	Page Table
 	"""
 	def __init__(self, record_num=None, record_size=None, page_size=None, pointer=None):
+		"""
+		:type record_num: int
+		:type record_size: int
+		:type page_size: int
+		:type pointer: int
+		"""
 		if page_size % record_size != 0:
 			raise InputError
 		self.num_of_record = record_num
@@ -56,6 +67,8 @@ class PageTable(object):
 	def generate(self, record_size=None, page_size=None):
 		"""
 		generating Page
+		:type record_size: int
+		:type page_size: int
 		"""
 		temp_num = self.num_of_record / self.record_per_page
 		temp_rest = self.num_of_record % self.record_per_page
@@ -67,6 +80,8 @@ class PageTable(object):
 			# if the last page can not be full fill
 			if num == temp_num - 1 and temp_rest != 0:
 				temp = Page(record_size, page_size, temp_rest)
+			else:
+				pass
 			temp = Page(record_size, page_size)
 			self.page.append(temp)
 			self.num_of_page += 1
@@ -75,6 +90,7 @@ class PageTable(object):
 	def random_data_gen(self, data_set=None):
 		"""
 		fill random data to all page record
+		:type data_set: set
 		"""
 		temp = list(data_set)
 		current = 0
@@ -112,6 +128,7 @@ class PageTable(object):
 	def get_data(self, record_num=None):
 		"""
 		get the data of the specified record number
+		:type record_num: int
 		"""
 		page_num = record_num / self.record_per_page
 		offset = record_num % self.record_per_page
@@ -123,6 +140,11 @@ class Page(object):
 	Page
 	"""
 	def __init__(self, record_size=None, page_size=None, record_num=None):
+		"""
+		:type record_size: int
+		:type page_size: int
+		:type record_num: int
+		"""
 		if record_size > page_size or page_size % record_size != 0:
 			raise InputError
 		self.record_size = record_size
@@ -136,6 +158,7 @@ class Page(object):
 	def get_data(self, input_offset=None):
 		"""
 		return the data of specified offset
+		:type input_offset: int
 		"""
 		return list(self.data)[input_offset]
 

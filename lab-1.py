@@ -17,8 +17,8 @@ import Queue
 import random
 import sys
 
-#init
-#Queue object contain a semaphore mechanism itself
+# init
+# Queue object contain a semaphore mechanism itself
 LENGTH = 4
 SHARE_ZONE = Queue.Queue(LENGTH)
 FULL = Semaphore(LENGTH)
@@ -31,6 +31,7 @@ RESULT = list()
 def producer(num=None):
 	"""
 	producer
+	:type num: int
 	"""
 	with STATUS:
 		when_enter = SHARE_ZONE.qsize()
@@ -50,6 +51,7 @@ def producer(num=None):
 def consumer(num=None):
 	"""
 	consumer
+	:type num: int
 	"""
 	with STATUS:
 		when_enter = SHARE_ZONE.qsize()
@@ -69,6 +71,7 @@ def consumer(num=None):
 def main_func(input_argv=None):
 	"""
 	主函数，生产者数量必须与消费者数量相同，否则会死锁
+	:type input_argv: list
 	"""
 	if len(input_argv) == 1:
 		task_count = 8

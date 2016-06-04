@@ -44,12 +44,20 @@ class System(object):
 	System Attribute
 	"""
 	def __init__(self, type_num=None, max_res=None, min_res=None):
+		"""
+		:type type_num: int
+		:type max_res: int
+		:type min_res: int
+		"""
 		self.resource = list()
 		self.available = list()
 		self.generate(type_num, max_res, min_res)
 	def generate(self, type_num=None, max_res=None, min_res=None):
 		"""
 		using module random to generate the system attribute
+		:type type_num: int
+		:type max_res: int
+		:type min_res: int
 		"""
 		if type_num is None and max_res is None and min_res is None:
 			type_num = TYPE_OF_RESOURCE
@@ -76,6 +84,10 @@ class Process(object):
 	def __init__(self, type_num=None, min_value=None, max_value=None, avail_alloc=None):
 		"""
 		the input min_value and max_value should be a list
+		:type type_num: int
+		:type min_value: list
+		:type max_value: list
+		:type avail_alloc: list
 		"""
 		if type_num is None and min_value is None and max_value is None:
 			type_num = TYPE_OF_RESOURCE
@@ -88,7 +100,6 @@ class Process(object):
 			pass
 		else:
 			raise InputError
-
 		self.res = list()
 		self.name = str()
 		for i in range(0, type_num):
@@ -101,6 +112,11 @@ class ProcessAttr(object):
 	Process Attribute
 	"""
 	def __init__(self, min_value=None, max_value=None, avail_alloc=None):
+		"""
+		:type min_value: int
+		:type max_value: int
+		:type avail_alloc: int
+		"""
 		self.max = int()
 		self.allocation = int()
 		self.need = int()
@@ -108,6 +124,9 @@ class ProcessAttr(object):
 	def generate(self, min_value=None, max_value=None, avail_alloc=None):
 		"""
 		using module random to generate the process attribute
+		:type min_value: int
+		:type max_value: int
+		:type avail_alloc: int
 		"""
 		if max_value is not None and min_value is not None:
 			self.max = randint(min_value, max_value)
@@ -126,6 +145,7 @@ class ProcessAttr(object):
 def main_func(output_option=None):
 	"""
 	主函数
+	:type output_option: int
 	"""
 	#output_list = list()
 	output_line = list()
