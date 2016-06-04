@@ -13,36 +13,31 @@
 from random import randint
 from time import strftime
 
-import sys
-
-ADDR_SPACE = 2**32
+TOTAL_BLOCK = 2**32
 
 class System(object):
 	"""
 	Define system resource
 	"""
-	def __init__(self):
-		i = 0
-		self.resource = list()
-		self.used = list()
-		while i < ADDR_SPACE:
-			self.resource.append(i)
-			i += 1
+	def __init__(self, ):
+		self.used = set()
 	def alloc_block(self):
 		"""
 		allocate an available block from the system resource randomly, will return the block number
 		"""
-		rand_num = randint(0, len(self.resource))
-		block_num = self.resource.pop(rand_num)
-		self.used.append(block_num)
+		block_num = randint(0, TOTAL_BLOCK)
+		while block_num in self.used is True:
+			block_num = randint(0, TOTAL_BLOCK)
+		self.used.add(block_num)
 		return block_num
 	def free_block(self, block_num=None):
 		"""
 		do not free an unused block !!!
 		:type block_num: int
 		"""
-		self.used.pop(self.used.index(block_num))
-		self.resource.append(block_num)
+		temp = list(self.used)
+		temp.pop(temp.index(block_num))
+		self.used = set(temp)
 		return
 
 SYSTEM = System()
@@ -92,6 +87,7 @@ class BlockIndex(object):
 		if level == 0 and record_list is None:
 			self.num_of_record = None
 			self.record_per_block = None
+			self.block_size = block_size
 			if data_size % block_size != 0:
 				self.num_of_block = data_size / block_size + 1
 			else:
@@ -143,8 +139,6 @@ class BlockIndex(object):
 				temp.data_append(input_record[counter])
 				block_remain -= 1
 			else:
-				current += 1
-				block_remain = self.block_list[current].num_of_record - 1
 				self.block_list.append(temp)
 				block_num = SYSTEM.alloc_block()
 				self.index_list.append(block_num)
@@ -152,6 +146,10 @@ class BlockIndex(object):
 					temp = Block(block_num, special_num)
 				else:
 					temp = Block(block_num, self.record_per_block)
+				block_remain = temp.num_of_record
+				temp.data_append(input_record[counter])
+				block_remain -= 1
+				current += 1
 			counter += 1
 	def get_info(self, want_index_list=False):
 		"""
@@ -161,21 +159,19 @@ class BlockIndex(object):
 		lines = list()
 		if self.level_num == 0:
 			lines.append('Direct Block Index Table:\n')
-			lines.append('\thave ' + str(self.num_of_block) + ' blocks\n')
-			lines.append('\ttake ' + str(self.num_of_block * self.block_size) + ' space\n')
-			if want_index_list is True:
-				lines.append(str(self.index_list) + '\n')
 		else:
 			lines.append('Level ' + str(self.level_num) + ' Block Index Table:\n')
-			lines.append('\thave ' + str(self.num_of_block) + ' blocks\n')
-			lines.append('\ttake ' + str(self.num_of_block * self.block_size) + ' space\n')
-			if want_index_list is True:
-				hex_list = list()
-				k = 0
-				while k < len(self.index_list):
-					hex_list.append(hex(self.index_list[k]))
-					k += 1
-				lines.append(str(self.hex_list) + '\n')
+			lines.append('\thave ' + str(self.num_of_record) + ' records\n')
+		lines.append('\thave ' + str(self.num_of_block) + ' blocks\n')
+		lines.append('\ttake ' + str(self.num_of_block * self.block_size) + ' space\n')
+		if want_index_list is True:
+			hex_list = list()
+			k = 0
+			while k < len(self.index_list):
+				hex_list.append(hex(self.index_list[k]))
+				k += 1
+			lines.append(str(hex_list) + '\n')
+		lines.append('\n')
 		return lines
 
 class IndexNode(object):
@@ -210,14 +206,15 @@ class IndexNode(object):
 		for i in range(0, self.num_of_level+1):
 			if i == 0:
 				temp = BlockIndex(i, self.file_size, self.block_size, self.record_size)
-				self.block_index.append(temp)
 			else:
-				temp = BlockIndex(i, self.file_size, self.block_size, self.record_size, self.block_index[0].index_list)
+				data_size = self.block_index[i-1].num_of_block * self.record_size
+				temp = BlockIndex(i, data_size, self.block_size, self.record_size, self.block_index[0].index_list)
 			self.block_index.append(temp)
 		return
-	def output(self):
+	def output(self, want_index_list=False):
 		"""
 		output itself
+		:type want_index_list: bool
 		"""
 		line = list()
 		line.append('File Name: ' + str(self.file_name) + '\n')
@@ -226,9 +223,11 @@ class IndexNode(object):
 		line.append('File Size: ' + str(self.file_size) + '\n')
 		line.append('Index Level: ' + str(self.num_of_level) + '\n')
 		for i in range(0, self.num_of_level+1):
-			line.append(self.block_index[i].get_info())
+			line.extend(self.block_index[i].get_info(want_index_list))
 		return line
 
-MYFILE = IndexNode('cooper', 'cooper', 2**10, 3, 2**6, 2**2)
-print MYFILE.output()
+MYFILE = IndexNode('I am awosome', 'cooper', 2**20, 3, 2**9, 2**2)
+OUTPUT = open('lab-4.result','w')
+OUTPUT.writelines(MYFILE.output(want_index_list=True))
+print 'completed !'
 
