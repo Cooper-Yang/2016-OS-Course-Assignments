@@ -52,7 +52,7 @@ class PageTable(object):
 		:type record_num: int
 		:type record_size: int
 		:type page_size: int
-		:type pointer: int
+		:type pointer: PageTable
 		"""
 		if page_size % record_size != 0:
 			raise InputError
@@ -186,7 +186,6 @@ if __name__ == "__main__":
 			raise InputError
 		ADDR_SPACE = 2 ** 64
 		RECORD_NUM_OF_LAST_PAGE_TABLE = ADDR_SPACE / sys.argv[2]
-		# take the TABLE[0] spot when init, so there won't have 'page table level 0'
 		TABLE = []
 		POINTER = None
 		# init page table
@@ -195,7 +194,11 @@ if __name__ == "__main__":
 			if i == 0:
 				TEMP.order_data_gen()
 			else:
-				TEMP.random_data_gen(set(list(range(0, RECORD_NUM_OF_LAST_PAGE_TABLE))))
+				data_set = set()
+				k = 0
+				while k < RECORD_NUM_OF_LAST_PAGE_TABLE:
+					data_set.add(k)
+				TEMP.random_data_gen(data_set)
 			TABLE.insert(0, TEMP)
 			RECORD_NUM_OF_LAST_PAGE_TABLE = len(TEMP)
 			POINTER = TEMP
