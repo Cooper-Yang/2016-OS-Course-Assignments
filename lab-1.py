@@ -13,6 +13,7 @@ from threading import Thread
 from threading import Lock
 from threading import Semaphore
 from time import sleep
+from codecs import encode, decode
 import Queue
 import random
 import sys
@@ -27,6 +28,8 @@ MUTEX = Lock()
 STATUS = Lock()
 DATA = 'whatever'
 RESULT = list()
+
+DOC = __doc__
 
 def producer(num=None):
 	"""
@@ -78,8 +81,9 @@ def main_func(input_argv=None):
 	elif len(input_argv) > 1:
 		task_count = int(input_argv[1])
 	else:
-		raise ValueError
-	outputfile = open('lab-1.result', 'w')
+		print encode(decode(DOC, 'utf-8'), 'gbk')
+		raise NameError
+	output_file = open('lab-1.result', 'w')
 
 	remaining = task_count + task_count
 	producer_count = task_count
@@ -105,9 +109,9 @@ def main_func(input_argv=None):
 	sleep(2)
 	for lines in RESULT:
 		print lines
-	if outputfile != None:
-		outputfile.writelines(RESULT)
-		outputfile.close()
+	if output_file is not None:
+		output_file.writelines(RESULT)
+		output_file.close()
 	print 'completed !'
 	return
 

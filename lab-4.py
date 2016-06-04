@@ -17,6 +17,7 @@ Usage:
 """
 from random import randint
 from time import strftime
+from codecs import encode, decode
 
 import sys
 
@@ -268,7 +269,8 @@ if __name__ == "__main__":
 		BLOCK_SIZE = 2**8
 		RECORD_SIZE = 2**2
 	else:
-		print __doc__
+
+		print encode(decode(__doc__, 'utf-8'), 'gbk')
 		raise NameError
 	MY_FILE = IndexNode(FILE_NAME, OWNER, FILE_SIZE, LEVEL, BLOCK_SIZE, RECORD_SIZE)
 	OUTPUT = open('lab-4.result', 'w')

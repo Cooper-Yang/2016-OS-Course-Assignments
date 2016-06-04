@@ -33,6 +33,7 @@ InputError will raise if:
 """
 import sys
 from random import randint
+from codecs import encode, decode
 
 DOC = __doc__
 class InputError(Exception):
@@ -40,7 +41,7 @@ class InputError(Exception):
 	when input illegal
 	"""
 	def __str__(self):
-		print DOC
+		print encode(decode(DOC, 'utf-8'), 'gbk')
 		return
 
 class Page(object):

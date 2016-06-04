@@ -14,6 +14,7 @@ Usage:
 
 from random import randint
 from copy import deepcopy
+from codecs import encode, decode
 import sys
 
 DOC = __doc__
@@ -22,7 +23,7 @@ class InputError(Exception):
 	when input illegal
 	"""
 	def __str__(self):
-		print DOC
+		print encode(decode(DOC, 'utf-8'), 'gbk')
 		return
 
 # 系统资源种类
