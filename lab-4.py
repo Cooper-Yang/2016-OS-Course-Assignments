@@ -194,7 +194,7 @@ class BlockIndex(object):
 						hex_list.append(hex(count))
 					else:
 						hex_list.append(hex(self.block_list[k].data[count]))
-						count += 1
+					count += 1
 				k += 1
 				lines.append(str(hex_list) + '\n')
 		lines.append('\n')
