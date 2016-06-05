@@ -62,9 +62,9 @@ def producer(share_zone=None, full=None, empty=None, mutex=None, status=None, nu
 						print 'producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp+1) + '\n'
 				else:
 					if when_enter == LENGTH:
-						output.put('producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp + 1) + ' resume' + '\n', block = True, timeout = 5)
+						output.put('producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp + 1) + ' resume' + '\n', block=True, timeout=5)
 					else:
-						output.put('producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp + 1) + '\n', block = True, timeout = 5)
+						output.put('producer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp + 1) + '\n', block=True, timeout=5)
 			empty.release()
 		else:
 			pass
@@ -74,6 +74,7 @@ def producer(share_zone=None, full=None, empty=None, mutex=None, status=None, nu
 def consumer(share_zone=None, full=None, empty=None, mutex=None, status=None, num=None, mode=None, output=None):
 	"""
 	consumer
+	:type share_zone: Queue
 	:type full: Semaphore
 	:type empty: Semaphore
 	:type mutex: Lock
@@ -104,9 +105,9 @@ def consumer(share_zone=None, full=None, empty=None, mutex=None, status=None, nu
 						print 'consumer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp-1) + '\n'
 				else:
 					if when_enter == 0:
-						output.put( 'consumer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp - 1) + ' resume' + '\n', block = True, timeout = 5)
+						output.put('consumer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp - 1) + ' resume' + '\n', block=True, timeout=5)
 					else:
-						output.put( 'consumer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp - 1) + '\n', block = True, timeout = 5)
+						output.put('consumer ' + str(num) + ': ' + str(temp) + ' -> ' + str(temp - 1) + '\n', block=True, timeout=5)
 			full.release()
 		else:
 			pass
@@ -171,7 +172,7 @@ def main_func(input_argv=None):
 			process_list.append(tmp_process)
 		count = 0
 		while count < message_num:
-			string = output.get(block = True)
+			string = output.get(block=True)
 			print string
 			output_file.write(string)
 			count += 1
