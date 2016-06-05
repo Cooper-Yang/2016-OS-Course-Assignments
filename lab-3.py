@@ -19,6 +19,8 @@ InputError will raise if:
 :type sys.argv[3]: int
 :type sys.argv[4]: str
 
+****只在输出的时候生成随机地址****
+
 # 页式存储逻辑地址到物理地址映射
 
 * 条件：64位地址空间
@@ -158,7 +160,7 @@ class PageTable(object):
 if __name__ == "__main__":
 	LINES = list()
 	if len(sys.argv) == 1:
-		sys.argv = [0, 2**4, 2**34, 4, '0xEDCBA9876543210']
+		sys.argv = [0, 2**32, 2**40, 4, '0xEDCBA9876543210']
 		LINE = 'using default value ...\n\n'
 		print LINE
 		LINES.append(LINE)

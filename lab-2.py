@@ -27,7 +27,7 @@ class InputError(Exception):
 		return
 
 # 系统资源种类
-TYPE_OF_RESOURCE = 6
+TYPE_OF_RESOURCE = 3
 # 最大系统资源
 MAX_RESOURCE = 400
 # 最小系统资源
