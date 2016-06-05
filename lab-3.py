@@ -35,7 +35,6 @@ InputError will raise if:
 """
 import sys
 from random import randint
-from codecs import encode, decode
 
 ADDR_SPACE = 2 ** 64
 
@@ -45,7 +44,7 @@ class InputError(Exception):
 	when input illegal
 	"""
 	def __str__(self):
-		print encode(decode(DOC, 'utf-8'), 'gbk')
+		print DOC
 		return
 
 class System(object):

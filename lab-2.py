@@ -14,7 +14,6 @@ Usage:
 
 from random import randint
 from copy import deepcopy
-from codecs import encode, decode
 import sys
 
 DOC = __doc__
@@ -23,7 +22,7 @@ class InputError(Exception):
 	when input illegal
 	"""
 	def __str__(self):
-		print encode(decode(DOC, 'utf-8'), 'gbk')
+		print DOC
 		return
 
 # 系统资源种类
@@ -177,9 +176,9 @@ def main_func(output_option=None):
 		allocation_attr = ' allocation -'
 		need_attr = ' need -'
 		for j in range(0, TYPE_OF_RESOURCE):
-			max_attr = max_attr + str(temp.res[j].max).rjust(4)
-			allocation_attr = allocation_attr + str(temp.res[j].allocation).rjust(4)
-			need_attr = need_attr + str(temp.res[j].need).rjust(4)
+			max_attr += str(temp.res[j].max).rjust(4)
+			allocation_attr += str(temp.res[j].allocation).rjust(4)
+			need_attr += str(temp.res[j].need).rjust(4)
 		line = temp.name + ':' + max_attr + allocation_attr + need_attr + '\n'
 		output_line.append(line)
 	# dead lock generator, will make dead lock more frequent
@@ -222,8 +221,8 @@ def main_func(output_option=None):
 	resource_attr = ' resource -'
 	available_attr = ' available -'
 	for j in range(0, TYPE_OF_RESOURCE):
-		resource_attr = resource_attr + str(system_res.resource[j]).rjust(4)
-		available_attr = available_attr + str(system_res.available[j]).rjust(4)
+		resource_attr += str(system_res.resource[j]).rjust(4)
+		available_attr += str(system_res.available[j]).rjust(4)
 	line = '\nSystem :' + resource_attr + available_attr + '\n\n'
 	output_line.append(line)
 	# banker's algorithm

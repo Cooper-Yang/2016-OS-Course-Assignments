@@ -18,7 +18,6 @@ Usage:
 """
 from random import randint
 from time import strftime
-from codecs import encode, decode
 
 import sys
 
@@ -298,7 +297,7 @@ if __name__ == "__main__":
 			raise ValueError
 	else:
 		print '\n'
-		print encode(decode(__doc__, 'utf-8'), 'gbk')
+		print __doc__
 		print '\n'
 		raise NameError
 	MY_FILE = IndexNode(FILE_NAME, OWNER, FILE_SIZE, LEVEL, BLOCK_SIZE, RECORD_SIZE)

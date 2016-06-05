@@ -15,7 +15,6 @@ Usage:
 import threading
 import multiprocessing
 from multiprocessing import Queue
-from codecs import encode, decode
 from time import sleep
 from random import randint
 import sys
@@ -132,7 +131,7 @@ def main_func(input_argv=None):
 		else:
 			raise ValueError
 	else:
-		print encode(decode(DOC, 'utf-8'), 'gbk')
+		print DOC
 		raise NameError
 	if mode == 1:
 		share_zone = Queue(LENGTH)
