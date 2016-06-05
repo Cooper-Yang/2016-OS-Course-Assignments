@@ -3,7 +3,8 @@
 OS Course Exp - 4: i-Node
 
 Usage:
-	python lab-4.py [file_name] [owner] [file_size Byte] [level] [block_size] [record_size] [content fold = 0 or 1]
+
+	python lab-4.py [offset in file] [content fold level = 0(default) or 1(show index) or 2(show block content)]
 
 # 混合索引逻辑地址到物理地址映射
 
@@ -119,8 +120,13 @@ class BlockIndex(object):
 			else:
 				self.num_of_block = len(record_list) / self.record_per_block
 				self.is_full_fill = True
-			self.put_input_record_into_block(record_list)
+			i = 0
+			while i < self.num_of_block:
+				block_num = SYSTEM.alloc_block()
+				self.index_list.append(block_num)
+				i += 1
 			self.index_list.sort()
+			self.put_input_record_into_block(record_list)
 		else:
 			raise ValueError
 	def put_input_record_into_block(self, input_record=None):
@@ -130,41 +136,46 @@ class BlockIndex(object):
 		"""
 		if self.is_full_fill is False and self.num_of_record < self.record_per_block:
 			special_num = self.num_of_record
-			block_remain = self.num_of_record
+			record_current_block_remain = self.num_of_record
 		elif self.is_full_fill is False and self.num_of_record > self.record_per_block:
 			special_num = self.num_of_record % self.record_per_block
-			block_remain = self.record_per_block
+			record_current_block_remain = self.record_per_block
 		else:
 			special_num = None
-			block_remain = self.record_per_block
-		block_num = SYSTEM.alloc_block()
-		self.index_list.append(block_num)
-		temp = Block(block_num, block_remain)
+			record_current_block_remain = self.record_per_block
 		counter = 0
 		current = 0
+		temp = Block(self.index_list[current], record_current_block_remain)
 		while counter < self.num_of_record:
-			if block_remain != 0:
+			if record_current_block_remain != 0:
 				temp.data_append(input_record[counter])
-				block_remain -= 1
+				record_current_block_remain -= 1
 			else:
 				self.block_list.append(temp)
-				block_num = SYSTEM.alloc_block()
-				self.index_list.append(block_num)
 				current += 1
+				block_num = self.index_list[current]
 				if current == self.num_of_block - 1 and self.is_full_fill is False:
 					temp = Block(block_num, special_num)
 				else:
 					temp = Block(block_num, self.record_per_block)
-				block_remain = temp.num_of_record
+				record_current_block_remain = temp.num_of_record
 				temp.data_append(input_record[counter])
-				block_remain -= 1
+				record_current_block_remain -= 1
 			counter += 1
 		# append the last Block or due to the mechanism of while it will be dropped
 		self.block_list.append(temp)
-	def get_info(self, content_fold=True):
+	def get_data(self, index=None):
+		"""
+		:type index:int
+		"""
+		block_num = index / self.record_per_block
+		offset_num = index % self.record_per_block
+		data = self.block_list[block_num].data[offset_num]
+		return data
+	def get_info(self, content_fold=0):
 		"""
 		Return specified size of data according to specified index
-		:type content_fold: bool
+		:type content_fold: int
 		"""
 		lines = list()
 		if self.level_num == 0:
@@ -175,7 +186,7 @@ class BlockIndex(object):
 		lines.append('\thave ' + str(self.num_of_block) + ' blocks\n')
 		lines.append('\ttake ' + str(self.num_of_block * self.block_size) + ' Byte space\n')
 		if self.level_num == 0:
-			if content_fold is True:
+			if content_fold != 2:
 				pass
 			else:
 				hex_list = list()
@@ -185,19 +196,22 @@ class BlockIndex(object):
 					k += 1
 				lines.append(str(hex_list) + '\n')
 		else:
-			k = 0
-			while k < len(self.block_list):
-				lines.append('Block ' + str(k).rjust(4) + ' : address - ' + hex(self.block_list[k].num)+' :\n')
-				count = 0
-				hex_list = list()
-				while count < self.block_list[k].num_of_record:
-					if content_fold is True:
-						hex_list.append(hex(count))
-					else:
-						hex_list.append(hex(self.block_list[k].data[count]))
-					count += 1
-				k += 1
-				lines.append(str(hex_list) + '\n')
+			if content_fold == 0:
+				pass
+			else:
+				k = 0
+				while k < len(self.block_list):
+					lines.append('Block ' + str(k).rjust(4) + ' : address - ' + hex(self.block_list[k].num)+' :\n')
+					count = 0
+					hex_list = list()
+					while count < self.block_list[k].num_of_record:
+						if content_fold == 1:
+							hex_list.append(hex(count))
+						elif content_fold == 2:
+							hex_list.append(hex(self.block_list[k].data[count]))
+						count += 1
+					k += 1
+					lines.append(str(hex_list) + '\n')
 		lines.append('\n')
 		return lines
 
@@ -238,10 +252,30 @@ class IndexNode(object):
 				temp = BlockIndex(i, data_size, self.block_size, self.record_size, self.block_index[i-1].index_list)
 			self.block_index.append(temp)
 		return
-	def output(self, content_fold=False):
+	def find_block(self, input_address=None):
+		"""
+		:type input_address: int
+		"""
+		trace = list()
+		in_file_block_num = input_address / self.block_size
+		if input_address % self.block_size == 0 and in_file_block_num != 0:
+			in_file_block_num -= 1
+		else:
+			pass
+		index_num = in_file_block_num
+		i = 1
+		while i <= self.num_of_level:
+			content = str(index_num) + ' - ' + hex(self.block_index[i].get_data(index_num))
+			trace.insert(0, content)
+			index_num /= self.record_per_block
+			i += 1
+		# content = str(index_num) + ' - ' + hex(self.block_index[i].get_data(index_num))
+		trace.insert(0, index_num)
+		return str(trace)
+	def output(self, content_fold=0):
 		"""
 		output itself
-		:type content_fold: bool
+		:type content_fold: int
 		"""
 		line = list()
 		line.append('File Name: ' + str(self.file_name) + '\n')
@@ -254,29 +288,26 @@ class IndexNode(object):
 		return line
 
 if __name__ == "__main__":
-	if len(sys.argv) > 6:
-		FILE_NAME = str(sys.argv[1])
-		OWNER = str(sys.argv[2])
-		FILE_SIZE = int(sys.argv[3])
-		LEVEL = int(sys.argv[4])
-		BLOCK_SIZE = int(sys.argv[4])
-		RECORD_SIZE = int(sys.argv[4])
-	elif len(sys.argv) == 1:
+	if len(sys.argv) > 1:
 		FILE_NAME = 'I am awesome'
 		OWNER = 'Cooper Yang'
 		FILE_SIZE = 1234567
 		LEVEL = 3
 		BLOCK_SIZE = 2**8
 		RECORD_SIZE = 2**2
+		INPUT_ADDRESS = int(sys.argv[1], 16)
 	else:
-
 		print encode(decode(__doc__, 'utf-8'), 'gbk')
 		raise NameError
 	MY_FILE = IndexNode(FILE_NAME, OWNER, FILE_SIZE, LEVEL, BLOCK_SIZE, RECORD_SIZE)
 	OUTPUT = open('lab-4.result', 'w')
-	if len(sys.argv) > 7 and sys.argv[7] == '1':
-		OUTPUT.writelines(MY_FILE.output(content_fold=False))
+	if len(sys.argv) > 2 and sys.argv[2] == '1':
+		OUTPUT.writelines(MY_FILE.output(content_fold=1))
+	if len(sys.argv) > 2 and sys.argv[2] == '2':
+		OUTPUT.writelines(MY_FILE.output(content_fold=2))
 	else:
-		OUTPUT.writelines(MY_FILE.output(content_fold=True))
+		OUTPUT.writelines(MY_FILE.output(content_fold=0))
+	OUTPUT.writelines(MY_FILE.find_block(INPUT_ADDRESS))
+	OUTPUT.close()
 	print 'completed !'
 
