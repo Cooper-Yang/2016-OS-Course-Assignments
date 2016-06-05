@@ -8,3 +8,6 @@ browse.VC.db
 *.pyc
 
 *.result
+
+*.doc
+*.docx
