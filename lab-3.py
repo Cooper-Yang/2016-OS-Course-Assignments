@@ -5,7 +5,7 @@ OS Course Exp - 3: visual memory
 Usage:
 	python lab-3.py [record size] [page size] [number of level] [input address(hex) like 0x123]
 
-	if you have not type anything, default value is 2**4, 2**34, 4, '0xEDCBA9876543210'
+	if you have not type anything, default value is 2**4, 2**12, 4, '0x1111111111111111'
 
 InputError will raise if:
 	arguments less than four
@@ -37,6 +37,8 @@ import sys
 from random import randint
 from codecs import encode, decode
 
+ADDR_SPACE = 2 ** 64
+
 DOC = __doc__
 class InputError(Exception):
 	"""
@@ -45,6 +47,24 @@ class InputError(Exception):
 	def __str__(self):
 		print encode(decode(DOC, 'utf-8'), 'gbk')
 		return
+
+class System(object):
+	"""
+	Define system resource
+	"""
+	def __init__(self, ):
+		self.used = set()
+	def alloc_address(self):
+		"""
+		allocate an available block from the system resource randomly, will return the block number
+		"""
+		address_num = randint(0, ADDR_SPACE)
+		while address_num in self.used is True:
+			address_num = randint(0, ADDR_SPACE)
+		self.used.add(address_num)
+		return address_num
+
+SYSTEM = System()
 
 class Page(object):
 	"""
@@ -107,15 +127,13 @@ class PageTable(object):
 		if self.is_ordered is True:
 			data = int(record_num)
 		else:
-			# page_num = record_num / self.record_per_page
-			# offset = record_num % self.record_per_page
-			data = int(randint(0, self.num_of_record))
+			data = int(SYSTEM.alloc_address())
 		return data
 
 if __name__ == "__main__":
 	LINES = list()
 	if len(sys.argv) == 1:
-		sys.argv = [0, 2**2, 2**12, 4, '0xEDCBA9876543210']
+		sys.argv = [0, 2**2, 2**12, 4, '0x1111111111111111']
 		LINE = 'using default value ...\n\n'
 		print LINE
 		LINES.append(LINE)
@@ -134,7 +152,6 @@ if __name__ == "__main__":
 				raise InputError
 		except ValueError:
 			raise InputError
-		ADDR_SPACE = 2 ** 64
 		RECORD_NUM_OF_LAST_PAGE_TABLE = ADDR_SPACE / sys.argv[2]
 		TABLE = []
 		POINTER = None

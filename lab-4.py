@@ -4,7 +4,7 @@ OS Course Exp - 4: i-Node
 
 Usage:
 
-	python lab-4.py [offset in file] [content fold level = 0(default) or 1(show index) or 2(show block content)]
+	python lab-4.py [offset in file(Byte in Hex)] [content fold level = 0(default, hide block info) or 1(show index) or 2(show block content)]
 
 # 混合索引逻辑地址到物理地址映射
 
@@ -47,6 +47,12 @@ class System(object):
 		temp = list(self.used)
 		temp.pop(temp.index(block_num))
 		self.used = set(temp)
+		return
+	def use_block(self, block_num=None):
+		"""
+		:type block_num: int
+		"""
+		self.used.add(block_num)
 		return
 
 SYSTEM = System()
@@ -104,7 +110,8 @@ class BlockIndex(object):
 			# allocation direct block
 			temp_a = 0
 			while temp_a < self.num_of_block:
-				self.index_list.append(SYSTEM.alloc_block())
+				self.index_list.append(temp_a)
+				SYSTEM.use_block(temp_a)
 				temp_a += 1
 			self.index_list.sort()
 		elif level > 0 and record_list is not None:
@@ -186,15 +193,7 @@ class BlockIndex(object):
 		lines.append('\thave ' + str(self.num_of_block) + ' blocks\n')
 		lines.append('\ttake ' + str(self.num_of_block * self.block_size) + ' Byte space\n')
 		if self.level_num == 0:
-			if content_fold != 2:
-				pass
-			else:
-				hex_list = list()
-				k = 0
-				while k < len(self.index_list):
-					hex_list.append(hex(self.index_list[k]))
-					k += 1
-				lines.append(str(hex_list) + '\n')
+			pass
 		else:
 			if content_fold == 0:
 				pass
@@ -258,10 +257,6 @@ class IndexNode(object):
 		"""
 		trace = list()
 		in_file_block_num = input_address / self.block_size
-		if input_address % self.block_size == 0 and in_file_block_num != 0:
-			in_file_block_num -= 1
-		else:
-			pass
 		index_num = in_file_block_num
 		i = 1
 		while i <= self.num_of_level:
@@ -271,7 +266,7 @@ class IndexNode(object):
 			i += 1
 		# content = str(index_num) + ' - ' + hex(self.block_index[i].get_data(index_num))
 		trace.insert(0, index_num)
-		return str(trace)
+		return 'Address Trace: ' + str(trace)
 	def output(self, content_fold=0):
 		"""
 		output itself
@@ -291,19 +286,26 @@ if __name__ == "__main__":
 	if len(sys.argv) > 1:
 		FILE_NAME = 'I am awesome'
 		OWNER = 'Cooper Yang'
-		FILE_SIZE = 1234567
+		FILE_SIZE = 2**20
 		LEVEL = 3
 		BLOCK_SIZE = 2**8
 		RECORD_SIZE = 2**2
 		INPUT_ADDRESS = int(sys.argv[1], 16)
+		if INPUT_ADDRESS > FILE_SIZE:
+			print '\n'
+			print '!!! this address is even bigger than the file !!!'
+			print '\n'
+			raise ValueError
 	else:
+		print '\n'
 		print encode(decode(__doc__, 'utf-8'), 'gbk')
+		print '\n'
 		raise NameError
 	MY_FILE = IndexNode(FILE_NAME, OWNER, FILE_SIZE, LEVEL, BLOCK_SIZE, RECORD_SIZE)
 	OUTPUT = open('lab-4.result', 'w')
 	if len(sys.argv) > 2 and sys.argv[2] == '1':
 		OUTPUT.writelines(MY_FILE.output(content_fold=1))
-	if len(sys.argv) > 2 and sys.argv[2] == '2':
+	elif len(sys.argv) > 2 and sys.argv[2] == '2':
 		OUTPUT.writelines(MY_FILE.output(content_fold=2))
 	else:
 		OUTPUT.writelines(MY_FILE.output(content_fold=0))

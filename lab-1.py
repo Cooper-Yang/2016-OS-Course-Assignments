@@ -3,7 +3,7 @@
 OS Course Exp - 1: consumer and producer
 
 Usage:
-	python lab-1.py [number of producer] [number of consumer] [number of message]
+	python lab-1.py [number of producer] [number of consumer] [mode] [number of message]
 
 1. 场景1
   * 同一进程内启动一组生产者线程和一组消费者线程
