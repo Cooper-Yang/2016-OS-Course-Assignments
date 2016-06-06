@@ -65,33 +65,6 @@ class System(object):
 
 SYSTEM = System()
 
-class Page(object):
-	"""
-	Page
-	"""
-	def __init__(self, record_size=None, page_size=None, record_num=None):
-		"""
-		:type record_size: int
-		:type page_size: int
-		:type record_num: int
-		"""
-		if record_size > page_size or page_size % record_size != 0:
-			raise InputError
-		self.record_size = record_size
-		self.size = page_size
-		self.data = set()
-		# if the last page can not be full fill
-		if record_num is not None:
-			self.num_of_record = record_num
-		else:
-			self.num_of_record = page_size / record_size
-	def get_data(self, input_offset=None):
-		"""
-		return the data of specified offset
-		:type input_offset: int
-		"""
-		return list(self.data)[input_offset]
-
 class PageTable(object):
 	"""
 	Page Table
@@ -107,7 +80,6 @@ class PageTable(object):
 		if page_size % record_size != 0:
 			raise InputError
 		self.num_of_record = record_num
-		self.page = list()
 		self.record_per_page = page_size / record_size
 		self.num_of_page = self.num_of_record / self.record_per_page
 		if self.num_of_record % self.record_per_page == 0:
